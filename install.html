@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Installation Guide — VyomansLab</title>
     <meta name="description"
-        content="Step-by-step installation guide for the open-source VLSI EDA toolchain: Icarus Verilog, GTKWave, Covered, Yosys, and OpenROAD.">
+        content="Step-by-step installation guide for the open-source VLSI EDA toolchain on Windows (WSL), Linux, and macOS.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -44,8 +44,58 @@
             position: relative;
             color: #94a3b8;
             font-size: 1rem;
-            max-width: 520px;
+            max-width: 560px;
             margin: 0 auto;
+        }
+
+        /* OS SWITCHER TABS */
+        .os-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 24px 0 0;
+            position: relative;
+        }
+
+        .os-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            background: var(--surface);
+            color: var(--text-dim);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .os-tab:hover {
+            border-color: #334155;
+            color: #cbd5e1;
+        }
+
+        .os-tab.active {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+            color: var(--text-white);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+        }
+
+        .os-tab .os-icon {
+            font-size: 1.3rem;
+        }
+
+        /* OS Content panels */
+        .os-panel {
+            display: none;
+        }
+
+        .os-panel.active {
+            display: block;
         }
 
         /* Tool sections */
@@ -101,6 +151,11 @@
         .tool-num.pda {
             background: rgba(234, 179, 8, 0.1);
             color: #eab308;
+        }
+
+        .tool-num.wsl {
+            background: rgba(0, 120, 215, 0.1);
+            color: #38bdf8;
         }
 
         .tool-header h2 {
@@ -167,7 +222,6 @@
             margin-bottom: 10px;
         }
 
-        /* Prerequisites */
         .prereqs {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -186,6 +240,32 @@
 
         .prereq-item strong {
             color: var(--text-white);
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #f1f5f9;
+            margin-bottom: 12px;
+        }
+
+        .section-sub {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .os-switcher {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .os-tab {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -217,171 +297,434 @@
     <section class="install-hero">
         <div class="hero-bg"></div>
         <h1>🔧 Installation Guide</h1>
-        <p>Set up the complete open-source VLSI EDA toolchain on Ubuntu/Debian Linux.</p>
+        <p>Set up the complete open-source VLSI EDA toolchain. Choose your operating system below.</p>
+
+        <!-- OS SWITCHER -->
+        <div class="os-switcher">
+            <button class="os-tab active" data-os="linux">
+                <span class="os-icon">🐧</span> Linux
+            </button>
+            <button class="os-tab" data-os="windows">
+                <span class="os-icon">🪟</span> Windows
+            </button>
+            <button class="os-tab" data-os="mac">
+                <span class="os-icon">🍎</span> macOS
+            </button>
+        </div>
     </section>
 
-    <!-- PREREQUISITES -->
-    <section class="section">
-        <div class="container">
-            <h2 style="font-size:1.4rem; font-weight:800; color:#f1f5f9; margin-bottom:12px;">Prerequisites</h2>
-            <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:16px;">Make sure your system is up to date before
-                installing:</p>
-            <pre class="install-cmd"><code><span class="cm"># Update package lists</span>
+    <!-- ====================== LINUX PANEL ====================== -->
+    <div class="os-panel active" id="panel-linux">
+
+        <!-- Prerequisites -->
+        <section class="section">
+            <div class="container">
+                <h2 class="section-title">Prerequisites</h2>
+                <p class="section-sub">Make sure your Ubuntu/Debian system is up to date:</p>
+                <pre class="install-cmd"><code><span class="cm"># Update package lists</span>
 <span class="fn">sudo apt update</span> && <span class="fn">sudo apt upgrade</span> -y
 
 <span class="cm"># Install essential build tools</span>
 <span class="fn">sudo apt install</span> -y build-essential git cmake python3 python3-pip</code></pre>
-            <div class="prereqs">
-                <div class="prereq-item"><strong>OS:</strong> Ubuntu 20.04+ / Debian 11+</div>
-                <div class="prereq-item"><strong>RAM:</strong> 4 GB minimum</div>
-                <div class="prereq-item"><strong>Disk:</strong> ~5 GB free space</div>
-                <div class="prereq-item"><strong>Shell:</strong> bash / zsh</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- TOOL 1: Icarus Verilog -->
-    <section class="tool-section">
-        <div class="container">
-            <div class="tool-header">
-                <div class="tool-num sim">1</div>
-                <div>
-                    <h2>Icarus Verilog</h2>
-                    <div class="tool-role-label">RTL Simulation — compile & run Verilog designs</div>
+                <div class="prereqs">
+                    <div class="prereq-item"><strong>OS:</strong> Ubuntu 20.04+ / Debian 11+</div>
+                    <div class="prereq-item"><strong>RAM:</strong> 4 GB minimum</div>
+                    <div class="prereq-item"><strong>Disk:</strong> ~5 GB free space</div>
+                    <div class="prereq-item"><strong>Shell:</strong> bash / zsh</div>
                 </div>
             </div>
-            <pre class="install-cmd"><code><span class="cm"># Install Icarus Verilog</span>
-<span class="fn">sudo apt install</span> -y iverilog</code></pre>
-            <div class="verify-box">
-                <h4>✅ Verify Installation</h4>
-                <pre class="install-cmd"><code>$ iverilog -V
-<span class="cm"># Should show: Icarus Verilog version 12.0 (or similar)</span>
+        </section>
 
-$ <span class="fn">echo</span> 'module test; initial $display("Hello Verilog!"); endmodule' > /tmp/test.v
-$ iverilog -o /tmp/test /tmp/test.v && vvp /tmp/test
-<span class="cm"># Should print: Hello Verilog!</span></code></pre>
-            </div>
-        </div>
-    </section>
-
-    <!-- TOOL 2: GTKWave -->
-    <section class="tool-section">
-        <div class="container">
-            <div class="tool-header">
-                <div class="tool-num wave">2</div>
-                <div>
-                    <h2>GTKWave</h2>
-                    <div class="tool-role-label">Waveform Viewer — view .vcd simulation dumps</div>
+        <!-- Tool 1: Icarus Verilog -->
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num sim">1</div>
+                    <div>
+                        <h2>Icarus Verilog</h2>
+                        <div class="tool-role-label">RTL Simulation — compile & run Verilog designs</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="fn">sudo apt install</span> -y iverilog</code></pre>
+                <div class="verify-box">
+                    <h4>✅ Verify</h4>
+                    <pre class="install-cmd"><code>$ iverilog -V
+<span class="cm"># Should show: Icarus Verilog version 12.0 (or similar)</span></code></pre>
                 </div>
             </div>
-            <pre class="install-cmd"><code><span class="cm"># Install GTKWave</span>
-<span class="fn">sudo apt install</span> -y gtkwave</code></pre>
-            <div class="verify-box">
-                <h4>✅ Verify Installation</h4>
-                <pre class="install-cmd"><code>$ gtkwave --version
-<span class="cm"># Should show: GTKWave Analyzer v3.3.x</span></code></pre>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- TOOL 3: Covered -->
-    <section class="tool-section">
-        <div class="container">
-            <div class="tool-header">
-                <div class="tool-num cov">3</div>
-                <div>
-                    <h2>Covered</h2>
-                    <div class="tool-role-label">Code Coverage — analyze toggle, line, FSM coverage</div>
+        <!-- Tool 2: GTKWave -->
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num wave">2</div>
+                    <div>
+                        <h2>GTKWave</h2>
+                        <div class="tool-role-label">Waveform Viewer — view .vcd simulation dumps</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="fn">sudo apt install</span> -y gtkwave</code></pre>
+                <div class="verify-box">
+                    <h4>✅ Verify</h4>
+                    <pre class="install-cmd"><code>$ gtkwave --version</code></pre>
                 </div>
             </div>
-            <pre class="install-cmd"><code><span class="cm"># Clone the Covered repository</span>
-<span class="fn">git clone</span> https://github.com/hpretl/verilog-covered.git
+        </section>
+
+        <!-- Tool 3: Covered -->
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num cov">3</div>
+                    <div>
+                        <h2>Covered</h2>
+                        <div class="tool-role-label">Code Coverage — analyze toggle, line, FSM coverage</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="fn">git clone</span> https://github.com/hpretl/verilog-covered.git
 <span class="fn">cd</span> verilog-covered
-
-<span class="cm"># Configure and build</span>
 <span class="fn">./configure</span>
 <span class="fn">make</span>
 <span class="fn">sudo make install</span></code></pre>
-            <div class="install-note warn">
-                <span>⚠️</span>
-                <span><strong>Build from source required.</strong> Covered is not in apt. If you encounter a
-                    <code>TCL_DSTRING</code> error during build, apply the patch from the project's GitHub issues
-                    page.</span>
-            </div>
-            <div class="verify-box">
-                <h4>✅ Verify Installation</h4>
-                <pre class="install-cmd"><code>$ covered --version
-<span class="cm"># Should show: Covered - Verilog Code Coverage Analyzer</span></code></pre>
-            </div>
-        </div>
-    </section>
-
-    <!-- TOOL 4: Yosys -->
-    <section class="tool-section">
-        <div class="container">
-            <div class="tool-header">
-                <div class="tool-num synth">4</div>
-                <div>
-                    <h2>Yosys</h2>
-                    <div class="tool-role-label">Logic Synthesis — RTL to gate-level netlist</div>
+                <div class="install-note warn"><span>⚠️</span><span><strong>Build from source required.</strong> If you
+                        get a <code>TCL_DSTRING</code> error, check the project's GitHub issues for the patch.</span>
+                </div>
+                <div class="verify-box">
+                    <h4>✅ Verify</h4>
+                    <pre class="install-cmd"><code>$ covered --version</code></pre>
                 </div>
             </div>
-            <pre class="install-cmd"><code><span class="cm"># Install Yosys</span>
-<span class="fn">sudo apt install</span> -y yosys
+        </section>
 
-<span class="cm"># (Optional) Install Graphviz for circuit diagrams</span>
+        <!-- Tool 4: Yosys -->
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num synth">4</div>
+                    <div>
+                        <h2>Yosys</h2>
+                        <div class="tool-role-label">Logic Synthesis — RTL to gate-level netlist</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="fn">sudo apt install</span> -y yosys
+
+<span class="cm"># (Optional) Graphviz for circuit diagrams</span>
 <span class="fn">sudo apt install</span> -y graphviz</code></pre>
-            <div class="verify-box">
-                <h4>✅ Verify Installation</h4>
-                <pre class="install-cmd"><code>$ yosys -V
-<span class="cm"># Should show: Yosys 0.33 (or similar)</span></code></pre>
-            </div>
-        </div>
-    </section>
-
-    <!-- TOOL 5: OpenROAD -->
-    <section class="tool-section">
-        <div class="container">
-            <div class="tool-header">
-                <div class="tool-num pda">5</div>
-                <div>
-                    <h2>OpenROAD</h2>
-                    <div class="tool-role-label">Physical Design Automation — floorplan, place, CTS, route</div>
+                <div class="verify-box">
+                    <h4>✅ Verify</h4>
+                    <pre class="install-cmd"><code>$ yosys -V</code></pre>
                 </div>
             </div>
-            <pre class="install-cmd"><code><span class="cm"># Option A: Build from source (recommended for latest features)</span>
-<span class="fn">git clone</span> --recursive https://github.com/The-OpenROAD-Project/OpenROAD.git
+        </section>
+
+        <!-- Tool 5: OpenROAD -->
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num pda">5</div>
+                    <div>
+                        <h2>OpenROAD</h2>
+                        <div class="tool-role-label">Physical Design Automation — floorplan, place, CTS, route</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="fn">git clone</span> --recursive https://github.com/The-OpenROAD-Project/OpenROAD.git
 <span class="fn">cd</span> OpenROAD
-
-<span class="cm"># Install dependencies (Ubuntu/Debian)</span>
 <span class="fn">sudo ./etc/DependencyInstaller.sh</span>
-
-<span class="cm"># Build</span>
 <span class="fn">mkdir build && cd build</span>
 <span class="fn">cmake</span> ..
 <span class="fn">make</span> -j$(nproc)
 <span class="fn">sudo make install</span></code></pre>
-            <div class="install-note">
-                <span>💡</span>
-                <span><strong>Build takes ~30-60 minutes</strong> depending on your system. The
-                    <code>DependencyInstaller.sh</code> script handles all required libraries (Boost, TCL, SWIG,
-                    etc.).</span>
+                <div class="install-note"><span>💡</span><span><strong>Build takes ~30-60 min.</strong> The
+                        <code>DependencyInstaller.sh</code> handles all libraries (Boost, TCL, SWIG, etc.).</span></div>
+                <div class="verify-box">
+                    <h4>✅ Verify</h4>
+                    <pre class="install-cmd"><code>$ openroad -version</code></pre>
+                </div>
             </div>
-            <pre class="install-cmd"><code><span class="cm"># The Nangate45 PDK test files are included with OpenROAD:</span>
-<span class="fn">ls</span> OpenROAD/test/Nangate45/
-<span class="cm"># → Nangate45_typ.lib  Nangate45_tech.lef  Nangate45_stdcell.lef  Nangate45.tracks</span></code></pre>
-            <div class="verify-box">
-                <h4>✅ Verify Installation</h4>
-                <pre class="install-cmd"><code>$ openroad -version
-<span class="cm"># Should show: OpenROAD v2.0-xxxx</span>
+        </section>
+    </div>
 
-<span class="cm"># Quick test: start interactive mode</span>
-$ openroad
-openroad> help
-openroad> exit</code></pre>
+    <!-- ====================== WINDOWS PANEL ====================== -->
+    <div class="os-panel" id="panel-windows">
+
+        <!-- Step 0: WSL -->
+        <section class="tool-section" style="border-bottom: 2px solid #1e3a5f;">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num wsl">0</div>
+                    <div>
+                        <h2>Install WSL (Windows Subsystem for Linux)</h2>
+                        <div class="tool-role-label">Run a full Ubuntu environment inside Windows</div>
+                    </div>
+                </div>
+
+                <h3 style="color:#f1f5f9; margin: 20px 0 10px; font-size:1.05rem;">Step 1: Open PowerShell as
+                    Administrator</h3>
+                <pre class="install-cmd"><code><span class="cm"># Install WSL with Ubuntu (default distro)</span>
+<span class="fn">wsl --install</span>
+
+<span class="cm"># Restart your PC when prompted</span>
+<span class="cm"># After restart, Ubuntu will launch — create a username & password</span></code></pre>
+
+                <div class="install-note warn"><span>⚠️</span><span><strong>Requires Windows 10 (version 2004+) or
+                            Windows 11.</strong> If <code>wsl --install</code> fails, go to <em>Turn Windows features on
+                            or off</em> → enable <em>Windows Subsystem for Linux</em> and <em>Virtual Machine
+                            Platform</em>, then restart.</span></div>
+
+                <h3 style="color:#f1f5f9; margin: 24px 0 10px; font-size:1.05rem;">Step 2: Update Ubuntu Inside WSL</h3>
+                <pre class="install-cmd"><code><span class="cm"># Open Ubuntu from Start Menu or type 'wsl' in PowerShell</span>
+<span class="fn">sudo apt update</span> && <span class="fn">sudo apt upgrade</span> -y</code></pre>
+
+                <h3 style="color:#f1f5f9; margin: 24px 0 10px; font-size:1.05rem;">Step 3: GUI Support (for GTKWave)
+                </h3>
+                <pre class="install-cmd"><code><span class="cm"># Windows 11 / WSL2: GUI apps work out of the box via WSLg!</span>
+<span class="cm"># Just run: gtkwave file.vcd — opens a native window</span>
+
+<span class="cm"># Windows 10: Install VcXsrv or Xming on Windows, then in WSL:</span>
+<span class="fn">export</span> DISPLAY=:0
+<span class="fn">echo</span> 'export DISPLAY=:0' >> ~/.bashrc</code></pre>
+
+                <div class="verify-box">
+                    <h4>✅ Verify WSL</h4>
+                    <pre class="install-cmd"><code><span class="cm"># In PowerShell:</span>
+$ wsl --list --verbose
+<span class="cm"># Should show: Ubuntu  Running  2</span>
+
+<span class="cm"># Inside WSL terminal:</span>
+$ lsb_release -a
+<span class="cm"># Should show: Ubuntu 22.04 (or similar)</span></code></pre>
+                </div>
+
+                <div class="install-note"><span>📂</span><span><strong>File access:</strong> Windows files →
+                        <code>/mnt/c/Users/YourName/</code> · WSL files from Explorer →
+                        <code>\\wsl$\Ubuntu\home\</code></span></div>
             </div>
-        </div>
-    </section>
+        </section>
+
+        <!-- After WSL: same as Linux -->
+        <section class="section">
+            <div class="container">
+                <div class="install-note"><span>✅</span><span><strong>WSL is ready!</strong> Now follow the same steps
+                        as Linux below. All commands run inside your WSL Ubuntu terminal.</span></div>
+
+                <h2 class="section-title">Prerequisites</h2>
+                <pre class="install-cmd"><code><span class="fn">sudo apt update</span> && <span class="fn">sudo apt upgrade</span> -y
+<span class="fn">sudo apt install</span> -y build-essential git cmake python3 python3-pip</code></pre>
+            </div>
+        </section>
+
+        <!-- Tools 1-5 (same as Linux) -->
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num sim">1</div>
+                    <div>
+                        <h2>Icarus Verilog</h2>
+                        <div class="tool-role-label">RTL Simulation</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="fn">sudo apt install</span> -y iverilog</code></pre>
+            </div>
+        </section>
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num wave">2</div>
+                    <div>
+                        <h2>GTKWave</h2>
+                        <div class="tool-role-label">Waveform Viewer</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="fn">sudo apt install</span> -y gtkwave</code></pre>
+                <div class="install-note"><span>💡</span><span><strong>Windows 11:</strong> GTKWave GUI opens natively
+                        via WSLg. <strong>Windows 10:</strong> Make sure your X server (VcXsrv) is running first.</span>
+                </div>
+            </div>
+        </section>
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num cov">3</div>
+                    <div>
+                        <h2>Covered</h2>
+                        <div class="tool-role-label">Code Coverage</div>
+                    </div>
+                </div>
+                <pre
+                    class="install-cmd"><code><span class="fn">git clone</span> https://github.com/hpretl/verilog-covered.git
+<span class="fn">cd</span> verilog-covered && <span class="fn">./configure</span> && <span class="fn">make</span> && <span class="fn">sudo make install</span></code></pre>
+            </div>
+        </section>
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num synth">4</div>
+                    <div>
+                        <h2>Yosys</h2>
+                        <div class="tool-role-label">Logic Synthesis</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="fn">sudo apt install</span> -y yosys graphviz</code></pre>
+            </div>
+        </section>
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num pda">5</div>
+                    <div>
+                        <h2>OpenROAD</h2>
+                        <div class="tool-role-label">Physical Design Automation</div>
+                    </div>
+                </div>
+                <pre
+                    class="install-cmd"><code><span class="fn">git clone</span> --recursive https://github.com/The-OpenROAD-Project/OpenROAD.git
+<span class="fn">cd</span> OpenROAD
+<span class="fn">sudo ./etc/DependencyInstaller.sh</span>
+<span class="fn">mkdir build && cd build</span>
+<span class="fn">cmake</span> .. && <span class="fn">make</span> -j$(nproc) && <span class="fn">sudo make install</span></code></pre>
+            </div>
+        </section>
+    </div>
+
+    <!-- ====================== MAC PANEL ====================== -->
+    <div class="os-panel" id="panel-mac">
+
+        <!-- Prerequisites -->
+        <section class="section">
+            <div class="container">
+                <h2 class="section-title">Prerequisites</h2>
+                <p class="section-sub">Install Homebrew (the macOS package manager) and Xcode Command Line Tools:</p>
+                <pre class="install-cmd"><code><span class="cm"># Install Xcode Command Line Tools</span>
+<span class="fn">xcode-select --install</span>
+
+<span class="cm"># Install Homebrew</span>
+<span class="fn">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</span>
+
+<span class="cm"># Verify Homebrew</span>
+<span class="fn">brew --version</span></code></pre>
+                <div class="prereqs">
+                    <div class="prereq-item"><strong>OS:</strong> macOS 12+ (Monterey)</div>
+                    <div class="prereq-item"><strong>RAM:</strong> 4 GB minimum</div>
+                    <div class="prereq-item"><strong>Disk:</strong> ~5 GB free space</div>
+                    <div class="prereq-item"><strong>Arch:</strong> Intel or Apple Silicon</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool 1: Icarus Verilog -->
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num sim">1</div>
+                    <div>
+                        <h2>Icarus Verilog</h2>
+                        <div class="tool-role-label">RTL Simulation — compile & run Verilog designs</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="fn">brew install</span> icarus-verilog</code></pre>
+                <div class="verify-box">
+                    <h4>✅ Verify</h4>
+                    <pre class="install-cmd"><code>$ iverilog -V</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool 2: GTKWave -->
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num wave">2</div>
+                    <div>
+                        <h2>GTKWave</h2>
+                        <div class="tool-role-label">Waveform Viewer — view .vcd simulation dumps</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="fn">brew install --cask</span> gtkwave</code></pre>
+                <div class="install-note warn"><span>⚠️</span><span><strong>Apple Silicon (M1/M2/M3):</strong> If
+                        GTKWave doesn't open, you may need to install it via
+                        <code>brew install --cask --no-quarantine gtkwave</code> or use <a
+                            href="https://surfer-project.org/" style="color:#38bdf8;" target="_blank">Surfer</a> as an
+                        alternative waveform viewer.</span></div>
+                <div class="verify-box">
+                    <h4>✅ Verify</h4>
+                    <pre class="install-cmd"><code>$ gtkwave --version</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool 3: Covered -->
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num cov">3</div>
+                    <div>
+                        <h2>Covered</h2>
+                        <div class="tool-role-label">Code Coverage — analyze toggle, line, FSM coverage</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="fn">git clone</span> https://github.com/hpretl/verilog-covered.git
+<span class="fn">cd</span> verilog-covered
+<span class="fn">./configure</span>
+<span class="fn">make</span>
+<span class="fn">sudo make install</span></code></pre>
+                <div class="install-note"><span>💡</span><span><strong>Build from source.</strong> You need Tcl/Tk:
+                        <code>brew install tcl-tk</code> before building.</span></div>
+            </div>
+        </section>
+
+        <!-- Tool 4: Yosys -->
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num synth">4</div>
+                    <div>
+                        <h2>Yosys</h2>
+                        <div class="tool-role-label">Logic Synthesis — RTL to gate-level netlist</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="fn">brew install</span> yosys
+
+<span class="cm"># (Optional) Graphviz for circuit diagrams</span>
+<span class="fn">brew install</span> graphviz</code></pre>
+                <div class="verify-box">
+                    <h4>✅ Verify</h4>
+                    <pre class="install-cmd"><code>$ yosys -V</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool 5: OpenROAD -->
+        <section class="tool-section">
+            <div class="container">
+                <div class="tool-header">
+                    <div class="tool-num pda">5</div>
+                    <div>
+                        <h2>OpenROAD</h2>
+                        <div class="tool-role-label">Physical Design Automation — floorplan, place, CTS, route</div>
+                    </div>
+                </div>
+                <pre class="install-cmd"><code><span class="cm"># Install dependencies</span>
+<span class="fn">brew install</span> cmake boost swig tcl-tk eigen
+
+<span class="cm"># Clone and build</span>
+<span class="fn">git clone</span> --recursive https://github.com/The-OpenROAD-Project/OpenROAD.git
+<span class="fn">cd</span> OpenROAD
+<span class="fn">mkdir build && cd build</span>
+<span class="fn">cmake</span> ..
+<span class="fn">make</span> -j$(sysctl -n hw.ncpu)
+<span class="fn">sudo make install</span></code></pre>
+                <div class="install-note warn"><span>⚠️</span><span><strong>Apple Silicon note:</strong> Some OpenROAD
+                        dependencies may need Rosetta. If you encounter issues, try:
+                        <code>arch -x86_64 brew install ...</code> for problematic packages, or build in an x86_64
+                        environment.</span></div>
+                <div class="verify-box">
+                    <h4>✅ Verify</h4>
+                    <pre class="install-cmd"><code>$ openroad -version</code></pre>
+                </div>
+            </div>
+        </section>
+    </div>
 
     <!-- ALL DONE -->
     <section class="section" style="text-align:center; padding:60px 24px;">
@@ -413,9 +756,30 @@ openroad> exit</code></pre>
     </footer>
 
     <script>
-        // Nav scroll effect
+        // Nav scroll
         const nav = document.querySelector('.nav');
         window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+
+        // OS Switcher
+        const tabs = document.querySelectorAll('.os-tab');
+        const panels = document.querySelectorAll('.os-panel');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const os = tab.dataset.os;
+
+                // Switch active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Switch active panel
+                panels.forEach(p => p.classList.remove('active'));
+                document.getElementById('panel-' + os).classList.add('active');
+
+                // Smooth scroll to top of content
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
     </script>
 </body>
 

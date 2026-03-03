@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTL to PDA Flow — VyomansLab</title>
+    <meta name="description"
+        content="Complete VLSI design flow from RTL to Physical Design Automation. Learn how Verilog and SDC files are processed through simulation, synthesis, and layout.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .flow-hero {
+            padding: 140px 24px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flow-hero .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 50% at 50% 30%, rgba(99, 102, 241, 0.08) 0%, transparent 60%), radial-gradient(ellipse 50% 40% at 70% 70%, rgba(34, 197, 94, 0.06) 0%, transparent 50%), linear-gradient(180deg, #0a0e1a 0%, #0d1220 100%);
+        }
+
+        .flow-hero h1 {
+            position: relative;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            background: linear-gradient(135deg, #f8fafc 0%, #818cf8 50%, #22c55e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+
+        .flow-hero p {
+            position: relative;
+            color: #94a3b8;
+            font-size: 1rem;
+            max-width: 580px;
+            margin: 0 auto;
+        }
+
+        /* Stage sections */
+        .stage {
+            padding: 60px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stage:last-of-type {
+            border-bottom: none;
+        }
+
+        .stage-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .stage-num {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            flex-shrink: 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stage-num.rtl {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .stage-num.sim {
+            background: rgba(6, 182, 212, 0.1);
+            color: #06b6d4;
+        }
+
+        .stage-num.cov {
+            background: rgba(249, 115, 22, 0.1);
+            color: #f97316;
+        }
+
+        .stage-num.syn {
+            background: rgba(99, 102, 241, 0.1);
+            color: #818cf8;
+        }
+
+        .stage-num.pda {
+            background: rgba(234, 179, 8, 0.1);
+            color: #eab308;
+        }
+
+        .stage-header h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-white);
+            margin-bottom: 4px;
+        }
+
+        .stage-header .stage-sub {
+            font-size: 0.88rem;
+            color: var(--text-dim);
+        }
+
+        /* File cards */
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .file-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .file-card:hover {
+            border-color: #334155;
+            transform: translateY(-2px);
+        }
+
+        .file-card .fc-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-white);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-card .fc-ext {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .fc-ext.v {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+
+        .fc-ext.sdc {
+            background: rgba(234, 179, 8, 0.15);
+            color: #eab308;
+        }
+
+        .fc-ext.lib {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+        }
+
+        .fc-ext.lef {
+            background: rgba(249, 115, 22, 0.15);
+            color: #f97316;
+        }
+
+        .fc-ext.def {
+            background: rgba(6, 182, 212, 0.15);
+            color: #06b6d4;
+        }
+
+        .fc-ext.vcd {
+            background: rgba(236, 72, 153, 0.15);
+            color: #ec4899;
+        }
+
+        .file-card .fc-desc {
+            font-size: 0.82rem;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        .file-card .fc-role {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .file-card .fc-role span {
+            padding: 2px 8px;
+            border-radius: 5px;
+            background: rgba(148, 163, 184, 0.08);
+        }
+
+        /* Code block */
+        .code-block {
+            background: #0c1017;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 16px 0;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            color: #c9d1d9;
+        }
+
+        /* Info callout */
+        .info-box {
+            display: flex;
+            gap: 12px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 0.85rem;
+            background: var(--accent-soft);
+            border-left: 3px solid var(--accent);
+        }
+
+        .info-box strong {
+            color: var(--text-white);
+        }
+
+        /* Flow diagram */
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            flex-wrap: wrap;
+            padding: 30px 0;
+        }
+
+        .fd-node {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            text-align: center;
+            min-width: 120px;
+            transition: all 0.3s;
+        }
+
+        .fd-node:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        .fd-node .fd-icon {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+        }
+
+        .fd-node .fd-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-white);
+        }
+
+        .fd-node .fd-files {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .fd-arrow {
+            color: var(--accent);
+            font-size: 1.2rem;
+            padding: 0 8px;
+            font-weight: 800;
+        }
+
+        /* Table */
+        .ext-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.85rem;
+        }
+
+        .ext-table th {
+            text-align: left;
+            padding: 10px 14px;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ext-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+            color: #cbd5e1;
+        }
+
+        .ext-table tr:hover td {
+            background: rgba(99, 102, 241, 0.03);
+        }
+
+        @media (max-width: 600px) {
+            .flow-diagram {
+                flex-direction: column;
+            }
+
+            .fd-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Projects</a>
+                <a href="rtl-to-pda.html" class="active">Flow</a>
+                <a href="install.html">Install</a>
+            </div>
+            <a href="https://github.com/manuvamsi/vyomanslab-codes" class="gh-btn" target="_blank">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="flow-hero">
+        <div class="hero-bg"></div>
+        <h1>🔄 RTL to PDA Flow</h1>
+        <p>Understanding every file type in the VLSI design flow — from writing Verilog to generating chip layout.</p>
+    </section>
+
+    <!-- FLOW OVERVIEW DIAGRAM -->
+    <section class="section">
+        <div class="container">
+            <h2 style="text-align:center; font-size:1.3rem; font-weight:800; color:#f1f5f9; margin-bottom:8px;">Complete
+                Design Flow</h2>
+            <p style="text-align:center; color:#94a3b8; font-size:0.88rem; margin-bottom:24px;">Each stage consumes
+                inputs and produces outputs that feed the next stage</p>
+
+            <div class="flow-diagram">
+                <div class="fd-node">
+                    <div class="fd-icon">📝</div>
+                    <div class="fd-label">RTL Design</div>
+                    <div class="fd-files">.v</div>
+                </div>
+                <div class="fd-arrow">→</div>
+                <div class="fd-node">
+                    <div class="fd-icon">🔬</div>
+                    <div class="fd-label">Simulation</div>
+                    <div class="fd-files">.v → .vcd</div>
+                </div>
+                <div class="fd-arrow">→</div>
+                <div class="fd-node">
+                    <div class="fd-icon">🔍</div>
+                    <div class="fd-label">Coverage</div>
+                    <div class="fd-files">.vcd → .cdd</div>
+                </div>
+                <div class="fd-arrow">→</div>
+                <div class="fd-node">
+                    <div class="fd-icon">⚙️</div>
+                    <div class="fd-label">Synthesis</div>
+                    <div class="fd-files">.v + .lib →<br>netlist.v</div>
+                </div>
+                <div class="fd-arrow">→</div>
+                <div class="fd-node">
+                    <div class="fd-icon">🏗️</div>
+                    <div class="fd-label">PDA</div>
+                    <div class="fd-files">.v + .sdc + .lef<br>→ .def</div>
+                </div>
+            </div>
+
+            <!-- File Extensions Summary -->
+            <div style="margin-top: 30px;">
+                <h3 style="font-size:1.1rem; font-weight:700; color:#f1f5f9; margin-bottom:12px;">📋 File Extensions at
+                    a Glance</h3>
+                <table class="ext-table">
+                    <thead>
+                        <tr>
+                            <th>Extension</th>
+                            <th>Full Name</th>
+                            <th>Written / Generated</th>
+                            <th>Used By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="fc-ext v">.v</span></td>
+                            <td>Verilog Source</td>
+                            <td>✍️ You write it</td>
+                            <td>iverilog, Yosys</td>
+                        </tr>
+                        <tr>
+                            <td><span class="fc-ext sdc">.sdc</span></td>
+                            <td>Synopsys Design Constraints</td>
+                            <td>✍️ You write it</td>
+                            <td>OpenROAD</td>
+                        </tr>
+                        <tr>
+                            <td><span class="fc-ext vcd">.vcd</span></td>
+                            <td>Value Change Dump</td>
+                            <td>🤖 iverilog generates</td>
+                            <td>GTKWave, Covered</td>
+                        </tr>
+                        <tr>
+                            <td><span class="fc-ext lib">.lib</span></td>
+                            <td>Liberty Timing Library</td>
+                            <td>📦 Comes with PDK</td>
+                            <td>Yosys, OpenROAD</td>
+                        </tr>
+                        <tr>
+                            <td><span class="fc-ext lef">.lef</span></td>
+                            <td>Library Exchange Format</td>
+                            <td>📦 Comes with PDK</td>
+                            <td>OpenROAD</td>
+                        </tr>
+                        <tr>
+                            <td><span class="fc-ext def">.def</span></td>
+                            <td>Design Exchange Format</td>
+                            <td>🤖 OpenROAD generates</td>
+                            <td>Layout viewer</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- STAGE 1: RTL DESIGN -->
+    <section class="stage" id="rtl">
+        <div class="container">
+            <div class="stage-header">
+                <div class="stage-num rtl">1</div>
+                <div>
+                    <h2>RTL Design — Writing Verilog</h2>
+                    <div class="stage-sub">Your design starts here. You write the digital logic in Verilog.</div>
+                </div>
+            </div>
+
+            <div class="file-grid">
+                <div class="file-card">
+                    <div class="fc-name"><span class="fc-ext v">.v</span> design.v</div>
+                    <div class="fc-desc">The <strong>RTL module</strong> — your actual digital logic. Defines inputs,
+                        outputs, registers, and behavior using <code>always</code> blocks, <code>assign</code>
+                        statements, and state machines.</div>
+                    <div class="fc-role"><span>✍️ You write this</span></div>
+                </div>
+                <div class="file-card">
+                    <div class="fc-name"><span class="fc-ext v">.v</span> testbench.v</div>
+                    <div class="fc-desc">The <strong>testbench</strong> — generates stimulus (clock, reset, test inputs)
+                        and monitors outputs. Uses <code>$dumpfile</code> to create waveforms. Not synthesized.</div>
+                    <div class="fc-role"><span>✍️ You write this</span></div>
+                </div>
+            </div>
+
+            <pre class="code-block"><code><span class="cm">// Example: 4-bit counter RTL (counter_4bit.v)</span>
+<span class="kw">module</span> <span class="fn">Mycounter</span> (
+    <span class="kw">input</span>  clk, rst,
+    <span class="kw">output reg</span> [<span class="num">3</span>:<span class="num">0</span>] count
+);
+    <span class="kw">always</span> @(<span class="kw">posedge</span> clk <span class="kw">or posedge</span> rst)
+        <span class="kw">if</span> (rst) count &lt;= <span class="num">0</span>;
+        <span class="kw">else</span>    count &lt;= count + <span class="num">1</span>;
+<span class="kw">endmodule</span></code></pre>
+
+            <div class="info-box">
+                <span>💡</span>
+                <div><strong>Key rule:</strong> The testbench is for simulation only — it's never synthesized. Your
+                    design module is what becomes a chip.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STAGE 2: SIMULATION -->
+    <section class="stage" id="simulation">
+        <div class="container">
+            <div class="stage-header">
+                <div class="stage-num sim">2</div>
+                <div>
+                    <h2>Simulation — Verify Your Logic</h2>
+                    <div class="stage-sub">Compile both files with Icarus Verilog to check behavior before hardware.
+                    </div>
+                </div>
+            </div>
+
+            <div class="file-grid">
+                <div class="file-card">
+                    <div class="fc-name"><span class="fc-ext v">.v</span> design.v + testbench.v</div>
+                    <div class="fc-desc"><strong>Input:</strong> Both files are compiled together by
+                        <code>iverilog</code>. The testbench instantiates your design and drives its ports.</div>
+                    <div class="fc-role"><span>📥 Input</span></div>
+                </div>
+                <div class="file-card">
+                    <div class="fc-name"><span class="fc-ext vcd">.vcd</span> waveform.vcd</div>
+                    <div class="fc-desc"><strong>Output:</strong> Value Change Dump — records every signal transition
+                        over time. Open with GTKWave to visually inspect clock, reset, state, and outputs.</div>
+                    <div class="fc-role"><span>📤 Generated by iverilog/vvp</span></div>
+                </div>
+            </div>
+
+            <pre class="code-block"><code><span class="cm"># Compile design + testbench</span>
+$ iverilog -o sim_output design.v testbench.v
+
+<span class="cm"># Run simulation (generates .vcd)</span>
+$ vvp sim_output
+
+<span class="cm"># View waveforms</span>
+$ gtkwave waveform.vcd</code></pre>
+        </div>
+    </section>
+
+    <!-- STAGE 3: COVERAGE -->
+    <section class="stage" id="coverage">
+        <div class="container">
+            <div class="stage-header">
+                <div class="stage-num cov">3</div>
+                <div>
+                    <h2>Code Coverage — How Well Did You Test?</h2>
+                    <div class="stage-sub">Analyze which lines, toggles, and FSM states were exercised during
+                        simulation.</div>
+                </div>
+            </div>
+
+            <div class="file-grid">
+                <div class="file-card">
+                    <div class="fc-name"><span class="fc-ext vcd">.vcd</span> waveform.vcd</div>
+                    <div class="fc-desc"><strong>Input:</strong> The VCD file from simulation. Covered reads this to
+                        determine which signals toggled and which code paths were hit.</div>
+                    <div class="fc-role"><span>📥 Input from Stage 2</span></div>
+                </div>
+                <div class="file-card">
+                    <div class="fc-name" style="color:#f97316;">📊 .cdd</div>
+                    <div class="fc-desc"><strong>Output:</strong> Coverage database. Contains line coverage, toggle
+                        coverage, and FSM coverage metrics. Use <code>covered report</code> to view results.</div>
+                    <div class="fc-role"><span>📤 Generated by Covered</span></div>
+                </div>
+            </div>
+
+            <pre class="code-block"><code><span class="cm"># Score coverage</span>
+$ covered score -t top_module -v design.v -vcd waveform.vcd -o coverage.cdd
+
+<span class="cm"># View coverage report</span>
+$ covered report coverage.cdd</code></pre>
+        </div>
+    </section>
+
+    <!-- STAGE 4: SYNTHESIS -->
+    <section class="stage" id="synthesis">
+        <div class="container">
+            <div class="stage-header">
+                <div class="stage-num syn">4</div>
+                <div>
+                    <h2>Synthesis — RTL to Gates</h2>
+                    <div class="stage-sub">Yosys maps your behavioral Verilog to actual standard cells from the PDK.
+                    </div>
+                </div>
+            </div>
+
+            <div class="file-grid">
+                <div class="file-card">
+                    <div class="fc-name"><span class="fc-ext v">.v</span> design.v</div>
+                    <div class="fc-desc"><strong>Input:</strong> Your RTL design. Yosys reads this and converts
+                        <code>always</code> blocks to gates and flip-flops.</div>
+                    <div class="fc-role"><span>📥 Input</span></div>
+                </div>
+                <div class="file-card">
+                    <div class="fc-name"><span class="fc-ext lib">.lib</span> Nangate45_typ.lib</div>
+                    <div class="fc-desc"><strong>Input (PDK):</strong> Liberty file — describes every standard cell's
+                        timing, power, and area. Yosys uses this to pick the best cells for your logic.</div>
+                    <div class="fc-role"><span>📦 From PDK</span></div>
+                </div>
+                <div class="file-card">
+                    <div class="fc-name"><span class="fc-ext v">.v</span> design_synth.v</div>
+                    <div class="fc-desc"><strong>Output:</strong> Gate-level netlist — your design expressed as a
+                        network of AND, OR, MUX, DFF cells. This is what gets physically placed on silicon.</div>
+                    <div class="fc-role"><span>📤 Generated by Yosys</span></div>
+                </div>
+            </div>
+
+            <pre class="code-block"><code><span class="cm"># Yosys synthesis commands</span>
+yosys> read_verilog design.v
+yosys> synth -top module_name
+yosys> dfflibmap -liberty Nangate45_typ.lib     <span class="cm"># Map flip-flops</span>
+yosys> abc -liberty Nangate45_typ.lib            <span class="cm"># Map combinational logic</span>
+yosys> write_verilog design_synth.v              <span class="cm"># Output netlist</span>
+yosys> stat -liberty Nangate45_typ.lib           <span class="cm"># Print cell count & area</span></code></pre>
+
+            <div class="info-box">
+                <span>📚</span>
+                <div><strong>What is a .lib file?</strong> It contains detailed models of every standard cell (AND2_X1,
+                    DFF_X1, MUX2_X1, etc.) including timing arcs, power consumption, and physical area. Without it, the
+                    synthesizer can't map your logic to real gates.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STAGE 5: PDA -->
+    <section class="stage" id="pda">
+        <div class="container">
+            <div class="stage-header">
+                <div class="stage-num pda">5</div>
+                <div>
+                    <h2>Physical Design — Gates to Layout</h2>
+                    <div class="stage-sub">OpenROAD takes the gate-level netlist and produces a physical chip layout.
+                    </div>
+                </div>
+            </div>
+
+            <div class="file-grid">
+                <div class="file-card">
+                    <div class="fc-name"><span class="fc-ext v">.v</span> design_synth.v</div>
+                    <div class="fc-desc"><strong>Input:</strong> Gate-level netlist from synthesis. OpenROAD reads this
+                        to know which cells to place.</div>
+                    <div class="fc-role"><span>📥 From Synthesis</span></div>
+                </div>
+                <div class="file-card">
+                    <div class="fc-name"><span class="fc-ext sdc">.sdc</span> design.sdc</div>
+                    <div class="fc-desc"><strong>Input:</strong> Timing constraints you write — clock period,
+                        input/output delays, load capacitance. Tells the tool <em>how fast</em> the chip must run.</div>
+                    <div class="fc-role"><span>✍️ You write this</span></div>
+                </div>
+                <div class="file-card">
+                    <div class="fc-name"><span class="fc-ext lef">.lef</span> tech.lef + stdcell.lef</div>
+                    <div class="fc-desc"><strong>Input (PDK):</strong> Physical dimensions — metal layer info (tech) and
+                        cell geometry/pin locations (stdcell). Defines the "building blocks" for layout.</div>
+                    <div class="fc-role"><span>📦 From PDK</span></div>
+                </div>
+                <div class="file-card">
+                    <div class="fc-name"><span class="fc-ext def">.def</span> design_final.def</div>
+                    <div class="fc-desc"><strong>Output:</strong> Design Exchange Format — the final <strong>chip
+                            layout</strong>. Contains exact X/Y positions of every cell and metal routing between them.
+                    </div>
+                    <div class="fc-role"><span>📤 Generated by OpenROAD</span></div>
+                </div>
+            </div>
+
+            <pre class="code-block"><code><span class="cm"># OpenROAD PDA flow</span>
+openroad> read_liberty Nangate45_typ.lib       <span class="cm"># Cell timing</span>
+openroad> read_lef Nangate45_tech.lef           <span class="cm"># Metal layers</span>
+openroad> read_lef Nangate45_stdcell.lef        <span class="cm"># Cell geometries</span>
+openroad> read_verilog design_synth.v           <span class="cm"># Gate netlist</span>
+openroad> read_sdc design.sdc                   <span class="cm"># Timing goals</span>
+
+openroad> initialize_floorplan ...              <span class="cm"># Define chip area</span>
+openroad> global_placement -density 0.6         <span class="cm"># Place cells</span>
+openroad> clock_tree_synthesis ...              <span class="cm"># Build clock tree</span>
+openroad> global_route                          <span class="cm"># Route wires</span>
+openroad> detailed_route                        <span class="cm"># Final routing</span>
+openroad> write_def design_final.def            <span class="cm"># Output layout!</span></code></pre>
+
+            <div class="info-box">
+                <span>🎯</span>
+                <div><strong>What is a .sdc file?</strong> You define: (1) Clock period — how fast the chip runs, (2)
+                    Input/output delays — timing budget at chip boundaries, (3) Clock uncertainty — margin for jitter.
+                    Without SDC, the tool doesn't know if timing passes or fails.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SUMMARY -->
+    <section class="section" style="padding: 60px 0;">
+        <div class="container">
+            <h2 style="text-align:center; font-size:1.4rem; font-weight:800; color:#f1f5f9; margin-bottom:20px;">📁
+                Files You Write vs Files Generated</h2>
+
+            <div class="file-grid">
+                <div class="file-card" style="border-left: 3px solid #22c55e;">
+                    <h3 style="color:#22c55e; font-size:0.9rem; font-weight:700; margin-bottom:12px;">✍️ YOU WRITE (4
+                        files)</h3>
+                    <div class="fc-desc" style="line-height:2;">
+                        <code>design.v</code> — Your RTL logic<br>
+                        <code>testbench.v</code> — Simulation stimulus<br>
+                        <code>design.sdc</code> — Timing constraints<br>
+                        <code>yosys_run.tcl</code> / <code>openroad_run.tcl</code> — Tool scripts
+                    </div>
+                </div>
+                <div class="file-card" style="border-left: 3px solid #818cf8;">
+                    <h3 style="color:#818cf8; font-size:0.9rem; font-weight:700; margin-bottom:12px;">🤖 TOOLS GENERATE
+                        (4 files)</h3>
+                    <div class="fc-desc" style="line-height:2;">
+                        <code>waveform.vcd</code> — Signal dump from sim<br>
+                        <code>coverage.cdd</code> — Coverage report<br>
+                        <code>design_synth.v</code> — Gate netlist<br>
+                        <code>design_final.def</code> — Chip layout
+                    </div>
+                </div>
+                <div class="file-card" style="border-left: 3px solid #eab308;">
+                    <h3 style="color:#eab308; font-size:0.9rem; font-weight:700; margin-bottom:12px;">📦 PDK PROVIDES (3
+                        files)</h3>
+                    <div class="fc-desc" style="line-height:2;">
+                        <code>Nangate45_typ.lib</code> — Cell timing/power<br>
+                        <code>Nangate45_tech.lef</code> — Metal layer rules<br>
+                        <code>Nangate45_stdcell.lef</code> — Cell geometry
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align:center; margin-top:30px;">
+                <a href="index.html"
+                    style="display:inline-block; padding:12px 28px; border-radius:10px; background:var(--accent); color:white; text-decoration:none; font-weight:700; font-size:0.9rem; margin-right:12px;">←
+                    Projects</a>
+                <a href="install.html"
+                    style="display:inline-block; padding:12px 28px; border-radius:10px; background: transparent; border: 1px solid var(--border); color: var(--text-dim); text-decoration:none; font-weight:700; font-size:0.9rem;">Install
+                    Tools →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-brand"><span class="logo-icon">⚡</span><span class="logo-text">Vyomans<span
+                        class="accent">Lab</span></span></div>
+            <p>Open-source VLSI design exploration</p>
+            <div class="footer-links">
+                <a href="https://github.com/steveicarus/iverilog" target="_blank">Icarus Verilog</a>
+                <a href="https://github.com/YosysHQ/yosys" target="_blank">Yosys</a>
+                <a href="https://github.com/The-OpenROAD-Project/OpenROAD" target="_blank">OpenROAD</a>
+            </div>
+            <p class="copyright">© 2026 VyomansLab. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const nav = document.querySelector('.nav');
+        window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.file-card, .fd-node, .stage-header').forEach(el => obs.observe(el));
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Light Controller v1 — VyomansLab</title>
+    <meta name="description"
+        content="3-state traffic light FSM with timer-based transitions. Full RTL simulation, code coverage, Yosys synthesis, and OpenROAD PDA on Nangate45.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="#design">Design</a>
+                <a href="#simulation">Simulate</a>
+                <a href="#synthesis">Synthesize</a>
+                <a href="#pda">PDA</a>
+                <a href="install.html">Install</a>
+            </div>
+            <a href="https://github.com/vyomanslab" class="gh-btn" target="_blank">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero" id="overview">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <div class="hero-badge">📘 Project · learning-2</div>
+            <h1>Traffic Light Controller v1</h1>
+            <p class="hero-sub">A 3-state traffic light FSM (RED → GREEN → YELLOW) with timer-based transitions.
+                Includes simulation, code coverage, synthesis, and OpenROAD physical design.</p>
+            <div class="hero-tags">
+                <span class="htag">Verilog</span>
+                <span class="htag ys">Yosys</span>
+                <span class="htag or">OpenROAD</span>
+                <span class="htag iv">Covered</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- PIPELINE -->
+    <section class="pipeline-section">
+        <div class="container">
+            <div class="pipeline">
+                <div class="pipe-node active">
+                    <div class="pipe-icon">📝</div>
+                    <div class="pipe-label">RTL</div>
+                    <div class="pipe-file">traffic_light.v</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node">
+                    <div class="pipe-icon">🔬</div>
+                    <div class="pipe-label">Simulate</div>
+                    <div class="pipe-file">iverilog</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node">
+                    <div class="pipe-icon">🔍</div>
+                    <div class="pipe-label">Coverage</div>
+                    <div class="pipe-file">Covered</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node">
+                    <div class="pipe-icon">⚙️</div>
+                    <div class="pipe-label">Synthesize</div>
+                    <div class="pipe-file">Yosys</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node">
+                    <div class="pipe-icon">🏗️</div>
+                    <div class="pipe-label">PDA</div>
+                    <div class="pipe-file">OpenROAD</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node final">
+                    <div class="pipe-icon">✅</div>
+                    <div class="pipe-label">Layout</div>
+                    <div class="pipe-file">DEF</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 1: DESIGN -->
+    <section class="section alt" id="design">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">01</span>
+                <div>
+                    <h2>Design Entry — traffic_light.v</h2>
+                    <p class="step-desc">A 3-state FSM with a counter-based timer (state changes every 4 clock cycles)
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">📄 traffic_light.v</span><span
+                        class="lang-badge">Verilog</span></div>
+                <pre><code><span class="kw">module</span> <span class="fn">traffic_light</span> (
+    <span class="kw">input</span> clk, rst,
+    <span class="kw">output reg</span> red, yellow, green
+);
+    <span class="kw">parameter</span> S_RED=<span class="num">2'b00</span>, S_GREEN=<span class="num">2'b01</span>, S_YELLOW=<span class="num">2'b10</span>;
+    <span class="kw">reg</span> [<span class="num">1</span>:<span class="num">0</span>] current_state, next_state;
+    <span class="kw">reg</span> [<span class="num">2</span>:<span class="num">0</span>] count;
+
+    <span class="cm">// Sequential: state + timer</span>
+    <span class="kw">always</span> @(<span class="kw">posedge</span> clk <span class="kw">or posedge</span> rst) <span class="kw">begin</span>
+        <span class="kw">if</span> (rst) <span class="kw">begin</span>
+            current_state &lt;= S_RED; count &lt;= <span class="num">0</span>;
+        <span class="kw">end else if</span> (count == <span class="num">3</span>) <span class="kw">begin</span>
+            count &lt;= <span class="num">0</span>; current_state &lt;= next_state;
+        <span class="kw">end else</span>
+            count &lt;= count + <span class="num">1</span>;
+    <span class="kw">end</span>
+
+    <span class="cm">// Next state: RED → GREEN → YELLOW → RED</span>
+    <span class="kw">always</span> @(*) <span class="kw">case</span> (current_state)
+        S_RED:    next_state = S_GREEN;
+        S_GREEN:  next_state = S_YELLOW;
+        S_YELLOW: next_state = S_RED;
+        <span class="kw">default</span>:  next_state = S_RED;
+    <span class="kw">endcase</span>
+
+    <span class="cm">// Output logic</span>
+    <span class="kw">always</span> @(*) <span class="kw">begin</span>
+        {red, yellow, green} = <span class="num">3'b000</span>;
+        <span class="kw">case</span> (current_state)
+            S_RED:    red    = <span class="num">1</span>;
+            S_GREEN:  green  = <span class="num">1</span>;
+            S_YELLOW: yellow = <span class="num">1</span>;
+        <span class="kw">endcase</span>
+    <span class="kw">end</span>
+<span class="kw">endmodule</span></code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 2: SIMULATION -->
+    <section class="section" id="simulation">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">02</span>
+                <div>
+                    <h2>Simulation & Coverage</h2>
+                    <p class="step-desc">Simulate with Icarus Verilog, analyze code coverage with Covered</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">🖥️ Terminal</span></div>
+                <pre><code><span class="cm"># Compile + Run</span>
+$ iverilog -o traffic_light traffic_light.v tb_traffic_light.v
+$ vvp traffic_light
+
+<span class="cm"># Code Coverage</span>
+$ covered score -t traffic_light -v traffic_light.v -vcd traffic.vcd -o traffic.cdd
+$ covered report traffic.cdd
+
+<span class="cm"># View waveforms</span>
+$ gtkwave traffic.vcd</code></pre>
+            </div>
+
+            <div class="file-table">
+                <h3>Files at This Stage</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Origin</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>traffic_light.v</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>RTL design</td>
+                            </tr>
+                            <tr>
+                                <td><code>tb_traffic_light.v</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Testbench with monitor</td>
+                            </tr>
+                            <tr>
+                                <td><code>traffic.vcd</code></td>
+                                <td><span class="badge gen">🤖 Generated</span></td>
+                                <td>Waveform dump</td>
+                            </tr>
+                            <tr>
+                                <td><code>traffic.cdd</code></td>
+                                <td><span class="badge gen">🤖 Covered</span></td>
+                                <td>Coverage database</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 3: SYNTHESIS -->
+    <section class="section alt" id="synthesis">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">03</span>
+                <div>
+                    <h2>Synthesis — RTL to Gates (Yosys)</h2>
+                    <p class="step-desc">Map behavioral Verilog to Nangate45 standard cells</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">📄 yosys_run.tcl</span><span
+                        class="lang-badge">Tcl</span></div>
+                <pre><code><span class="fn">read_verilog</span> traffic_light.v
+<span class="fn">synth</span> -top traffic_light
+<span class="fn">dfflibmap</span> -liberty Nangate45_typ.lib
+<span class="fn">abc</span> -liberty Nangate45_typ.lib
+<span class="fn">opt_clean</span> -purge
+<span class="fn">tee</span> -o area_report.txt stat -liberty Nangate45_typ.lib
+<span class="fn">write_verilog</span> traffic_synth.v
+<span class="fn">show</span> -format dot -prefix traffic_synth</code></pre>
+            </div>
+
+            <div class="card">
+                <h3>Synthesis Results</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-val">20</div>
+                        <div class="stat-label">Total Cells</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-val">6</div>
+                        <div class="stat-label">Flip-Flops</div>
+                    </div>
+                    <div class="stat-card accent">
+                        <div class="stat-val">45.5</div>
+                        <div class="stat-label">Area (µm²)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-val">8</div>
+                        <div class="stat-label">Cell Types</div>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cell</th>
+                                <th>Count</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>DFFR_X1</code></td>
+                                <td>5</td>
+                                <td>D Flip-Flops with reset</td>
+                            </tr>
+                            <tr>
+                                <td><code>DFFS_X1</code></td>
+                                <td>1</td>
+                                <td>D Flip-Flop with set</td>
+                            </tr>
+                            <tr>
+                                <td><code>INV_X1</code></td>
+                                <td>7</td>
+                                <td>Inverters</td>
+                            </tr>
+                            <tr>
+                                <td><code>MUX2_X1</code></td>
+                                <td>3</td>
+                                <td>2-to-1 Multiplexers</td>
+                            </tr>
+                            <tr>
+                                <td><code>NAND2_X1</code></td>
+                                <td>1</td>
+                                <td>2-input NAND</td>
+                            </tr>
+                            <tr>
+                                <td><code>NOR2_X1</code></td>
+                                <td>1</td>
+                                <td>2-input NOR</td>
+                            </tr>
+                            <tr>
+                                <td><code>AND2_X1</code></td>
+                                <td>1</td>
+                                <td>2-input AND</td>
+                            </tr>
+                            <tr>
+                                <td><code>XOR2_X1</code></td>
+                                <td>1</td>
+                                <td>2-input XOR</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 4: PDA -->
+    <section class="section" id="pda">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">04</span>
+                <div>
+                    <h2>Physical Design (OpenROAD)</h2>
+                    <p class="step-desc">Floorplan → Place → CTS → Route → Layout</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">📄 traffic_light.sdc</span><span
+                        class="lang-badge">SDC</span></div>
+                <pre><code><span class="fn">create_clock</span> [get_ports clk] -name core_clock -period <span class="num">10.0</span>
+<span class="fn">set_input_delay</span> <span class="num">2.0</span> -clock core_clock [get_ports rst]
+<span class="fn">set_output_delay</span> <span class="num">2.0</span> -clock core_clock [get_ports red]
+<span class="fn">set_output_delay</span> <span class="num">2.0</span> -clock core_clock [get_ports yellow]
+<span class="fn">set_output_delay</span> <span class="num">2.0</span> -clock core_clock [get_ports green]</code></pre>
+            </div>
+
+            <div class="card">
+                <h3>PDA Flow Stages</h3>
+                <div class="flow-steps">
+                    <div class="flow-step">
+                        <div class="flow-num">1</div>
+                        <div class="flow-body"><strong>Read Design</strong><span>Load liberty, LEF, netlist, SDC</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">2</div>
+                        <div class="flow-body"><strong>Floorplan</strong><span>Die: 200×200 µm — Core: 160×160 µm (20µm
+                                margins)</span></div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">3</div>
+                        <div class="flow-body"><strong>Tapcells + PDN</strong><span>Substrate contacts + power
+                                distribution network</span></div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">4</div>
+                        <div class="flow-body"><strong>Placement</strong><span>Global (density 0.3) → detailed
+                                legalization</span></div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">5</div>
+                        <div class="flow-body"><strong>Clock Tree Synthesis</strong><span>BUF_X4 buffers for clock
+                                distribution</span></div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">6</div>
+                        <div class="flow-body"><strong>Routing</strong><span>Pin access → global route → detailed
+                                route</span></div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">7</div>
+                        <div class="flow-body"><strong>Reports</strong><span>Timing, area, and power analysis</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="callout info">
+                <div class="callout-icon">💡</div>
+                <div class="callout-text"><strong>Includes PDN.</strong> Unlike the simpler counter project, this flow
+                    sources <code>Nangate45.pdn.tcl</code> and runs <code>pdngen</code> to build a proper power
+                    distribution network before placement.</div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">🖥️ Terminal</span></div>
+                <pre><code>$ openroad openroad_run.tcl</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- FILE MAP -->
+    <section class="section alt" id="files">
+        <div class="container">
+            <h2>📁 Complete File Map</h2>
+            <div class="card">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Origin</th>
+                                <th>Stage</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>traffic_light.v</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Design</td>
+                                <td>3-state FSM RTL</td>
+                            </tr>
+                            <tr>
+                                <td><code>tb_traffic_light.v</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Simulate</td>
+                                <td>Testbench</td>
+                            </tr>
+                            <tr>
+                                <td><code>yosys_run.tcl</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Synthesize</td>
+                                <td>Yosys script</td>
+                            </tr>
+                            <tr>
+                                <td><code>traffic_light.sdc</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>PDA</td>
+                                <td>Timing constraints</td>
+                            </tr>
+                            <tr>
+                                <td><code>openroad_run.tcl</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>PDA</td>
+                                <td>OpenROAD script</td>
+                            </tr>
+                            <tr>
+                                <td><code>traffic_synth.v</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Synthesize</td>
+                                <td>Gate-level netlist</td>
+                            </tr>
+                            <tr>
+                                <td><code>traffic_synth.png</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Synthesize</td>
+                                <td>Circuit schematic</td>
+                            </tr>
+                            <tr>
+                                <td><code>area_report.txt</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Synthesize</td>
+                                <td>Cell & area stats</td>
+                            </tr>
+                            <tr>
+                                <td><code>traffic.vcd</code></td>
+                                <td><span class="badge gen">🤖 iverilog</span></td>
+                                <td>Simulate</td>
+                                <td>Waveform dump</td>
+                            </tr>
+                            <tr>
+                                <td><code>traffic.cdd</code></td>
+                                <td><span class="badge gen">🤖 Covered</span></td>
+                                <td>Coverage</td>
+                                <td>Coverage database</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Commands Cheat Sheet</h3>
+                <pre><code><span class="cm"># 1. Simulate</span>
+$ iverilog -o traffic_light traffic_light.v tb_traffic_light.v && vvp traffic_light
+
+<span class="cm"># 2. Coverage</span>
+$ covered score -t traffic_light -v traffic_light.v -vcd traffic.vcd -o traffic.cdd
+
+<span class="cm"># 3. Synthesize</span>
+$ yosys -s yosys_run.tcl
+
+<span class="cm"># 4. Physical Design</span>
+$ openroad openroad_run.tcl</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-brand"><span class="logo-icon">⚡</span><span class="logo-text">Vyomans<span
+                        class="accent">Lab</span></span></div>
+            <p>Open-source VLSI design exploration</p>
+            <div class="footer-links">
+                <a href="https://github.com/steveicarus/iverilog" target="_blank">Icarus Verilog</a>
+                <a href="https://github.com/YosysHQ/yosys" target="_blank">Yosys</a>
+                <a href="https://github.com/The-OpenROAD-Project/OpenROAD" target="_blank">OpenROAD</a>
+            </div>
+            <p class="copyright">© 2026 VyomansLab. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const nav = document.querySelector('.nav');
+        window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.card, .pipe-node, .flow-step').forEach(el => obs.observe(el));
+    </script>
+</body>
+
+</html>

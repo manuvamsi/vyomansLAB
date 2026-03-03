@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4-Bit Counter — Full PDA Flow — VyomansLab</title>
+    <meta name="description"
+        content="Complete RTL-to-layout walkthrough of a 4-bit synchronous counter using Icarus Verilog, Yosys, and OpenROAD on Nangate45.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="#design">Design</a>
+                <a href="#simulation">Simulate</a>
+                <a href="#synthesis">Synthesize</a>
+                <a href="#pda">PDA</a>
+                <a href="install.html">Install</a>
+            </div>
+            <a href="https://github.com/vyomanslab" class="gh-btn" target="_blank">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero" id="overview">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <div class="hero-badge">📘 Project · learning-1</div>
+            <h1>4-Bit Counter — Full PDA</h1>
+            <p class="hero-sub">A simple synchronous counter taken through the complete VLSI flow: simulation → coverage
+                → Yosys synthesis → OpenROAD floorplan, placement & routing.</p>
+            <div class="hero-tags">
+                <span class="htag">Verilog</span>
+                <span class="htag ys">Yosys</span>
+                <span class="htag or">OpenROAD</span>
+                <span class="htag iv">Icarus Verilog</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- PIPELINE -->
+    <section class="pipeline-section">
+        <div class="container">
+            <div class="pipeline">
+                <div class="pipe-node active">
+                    <div class="pipe-icon">📝</div>
+                    <div class="pipe-label">RTL</div>
+                    <div class="pipe-file">Mycounter.v</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node">
+                    <div class="pipe-icon">🔬</div>
+                    <div class="pipe-label">Simulate</div>
+                    <div class="pipe-file">iverilog</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node">
+                    <div class="pipe-icon">⚙️</div>
+                    <div class="pipe-label">Synthesize</div>
+                    <div class="pipe-file">Yosys</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node">
+                    <div class="pipe-icon">🏗️</div>
+                    <div class="pipe-label">PDA</div>
+                    <div class="pipe-file">OpenROAD</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node final">
+                    <div class="pipe-icon">✅</div>
+                    <div class="pipe-label">Layout</div>
+                    <div class="pipe-file">DEF + GDS</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 1: DESIGN -->
+    <section class="section alt" id="design">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">01</span>
+                <div>
+                    <h2>Design Entry — Mycounter.v</h2>
+                    <p class="step-desc">A 4-bit synchronous up-counter with reset</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">📄 Mycounter.v</span><span
+                        class="lang-badge">Verilog</span></div>
+                <pre><code><span class="kw">module</span> <span class="fn">Mycounter</span> (
+    <span class="kw">input</span> clk,
+    <span class="kw">input</span> rst,
+    <span class="kw">output reg</span> [<span class="num">3</span>:<span class="num">0</span>] out
+);
+
+    <span class="kw">always</span> @(<span class="kw">posedge</span> clk) <span class="kw">begin</span>
+        <span class="kw">if</span> (rst)
+            out &lt;= <span class="num">4'b0000</span>;
+        <span class="kw">else</span>
+            out &lt;= out + <span class="num">1</span>;
+    <span class="kw">end</span>
+
+<span class="kw">endmodule</span></code></pre>
+            </div>
+
+            <div class="callout info">
+                <div class="callout-icon">💡</div>
+                <div class="callout-text"><strong>Simple by design.</strong> This 15-line counter is the perfect first
+                    project — small enough to understand every gate in the synthesized netlist, yet complete enough to
+                    run through all PDA stages.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 2: SIMULATION -->
+    <section class="section" id="simulation">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">02</span>
+                <div>
+                    <h2>Simulation — Verify the Counter</h2>
+                    <p class="step-desc">Compile & run with Icarus Verilog, view waveforms with GTKWave</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">📄 Testbench.v</span><span
+                        class="lang-badge">Verilog</span></div>
+                <pre><code><span class="kw">module</span> <span class="fn">Testbench</span>;
+    <span class="kw">reg</span> clk, rst;
+    <span class="kw">wire</span> [<span class="num">3</span>:<span class="num">0</span>] out;
+
+    Mycounter uut (.clk(clk), .rst(rst), .out(out));
+
+    <span class="kw">initial begin</span> clk = <span class="num">0</span>; <span class="kw">forever</span> #<span class="num">5</span> clk = ~clk; <span class="kw">end</span>
+
+    <span class="kw">initial begin</span>
+        $dumpfile(<span class="str">"count.vcd"</span>);
+        $dumpvars(<span class="num">0</span>, Testbench);
+        rst = <span class="num">1</span>; #<span class="num">20</span>; rst = <span class="num">0</span>; #<span class="num">200</span>;
+        $finish;
+    <span class="kw">end</span>
+
+    <span class="kw">initial</span> $monitor(<span class="str">"Time=%t | rst=%b | out=%d"</span>, $time, rst, out);
+<span class="kw">endmodule</span></code></pre>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">🖥️ Terminal</span></div>
+                <pre><code><span class="cm"># Compile RTL + testbench</span>
+$ iverilog -o Mycounter Mycounter.v Testbench.v
+
+<span class="cm"># Run simulation</span>
+$ vvp Mycounter
+
+<span class="cm"># View waveforms</span>
+$ gtkwave count.vcd</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 3: SYNTHESIS -->
+    <section class="section alt" id="synthesis">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">03</span>
+                <div>
+                    <h2>Synthesis — RTL to Gates (Yosys)</h2>
+                    <p class="step-desc">Map behavioral Verilog to Nangate45 standard cells</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">📄 yosys_run.tcl</span><span
+                        class="lang-badge">Tcl</span></div>
+                <pre><code><span class="cm"># 1. Read source</span>
+<span class="fn">read_verilog</span> Mycounter.v
+
+<span class="cm"># 2. Synthesis</span>
+<span class="fn">synth</span> -top Mycounter
+
+<span class="cm"># 3. Map to Nangate45 library</span>
+<span class="fn">dfflibmap</span> -liberty Nangate45_typ.lib
+<span class="fn">abc</span> -liberty Nangate45_typ.lib
+
+<span class="cm"># 4. Clean and Write</span>
+<span class="fn">clean</span>
+<span class="fn">write_verilog</span> Mycounter_synth.v
+
+<span class="cm"># 5. Reports</span>
+<span class="fn">stat</span> -liberty Nangate45_typ.lib</code></pre>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">🖥️ Terminal</span></div>
+                <pre><code>$ yosys -s yosys_run.tcl</code></pre>
+            </div>
+
+            <div class="card">
+                <h3>Synthesis Results</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-val">14</div>
+                        <div class="stat-label">Total Cells</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-val">4</div>
+                        <div class="stat-label">Flip-Flops</div>
+                    </div>
+                    <div class="stat-card accent">
+                        <div class="stat-val">27</div>
+                        <div class="stat-label">Area (µm²)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-val">7</div>
+                        <div class="stat-label">Cell Types</div>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cell</th>
+                                <th>Count</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>DFF_X1</code></td>
+                                <td>4</td>
+                                <td>D Flip-Flops (4-bit counter register)</td>
+                            </tr>
+                            <tr>
+                                <td><code>INV_X1</code></td>
+                                <td>1</td>
+                                <td>Inverter</td>
+                            </tr>
+                            <tr>
+                                <td><code>NOR2_X1</code></td>
+                                <td>4</td>
+                                <td>2-input NOR gates</td>
+                            </tr>
+                            <tr>
+                                <td><code>XNOR2_X1</code></td>
+                                <td>1</td>
+                                <td>2-input XNOR gate</td>
+                            </tr>
+                            <tr>
+                                <td><code>NAND3_X1</code></td>
+                                <td>1</td>
+                                <td>3-input NAND gate</td>
+                            </tr>
+                            <tr>
+                                <td><code>AND2_X1</code></td>
+                                <td>1</td>
+                                <td>2-input AND gate</td>
+                            </tr>
+                            <tr>
+                                <td><code>AOI21_X1</code></td>
+                                <td>1</td>
+                                <td>AND-OR-Invert complex gate</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="file-table">
+                <h3>Files Generated</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Origin</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>Mycounter_synth.v</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Gate-level netlist → input to OpenROAD</td>
+                            </tr>
+                            <tr>
+                                <td><code>Mycounter_synth.png</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Circuit schematic visualization</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 4: PDA -->
+    <section class="section" id="pda">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">04</span>
+                <div>
+                    <h2>Physical Design (OpenROAD)</h2>
+                    <p class="step-desc">Floorplan → Place → CTS → Route → Layout</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">📄 Mycounter.sdc</span><span
+                        class="lang-badge">SDC</span></div>
+                <pre><code><span class="cm"># 10ns clock = 100 MHz</span>
+<span class="fn">create_clock</span> -name clk -period <span class="num">10.0</span> [get_ports clk]</code></pre>
+            </div>
+
+            <div class="card">
+                <h3>PDA Flow Stages</h3>
+                <div class="flow-steps">
+                    <div class="flow-step">
+                        <div class="flow-num">1</div>
+                        <div class="flow-body">
+                            <strong>Read Design</strong>
+                            <span>Load liberty, LEF, synthesized netlist, SDC constraints</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">2</div>
+                        <div class="flow-body">
+                            <strong>Floorplan</strong>
+                            <span>Die: 11×11 µm — Core: 7.7×7.7 µm (2µm margins)</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">3</div>
+                        <div class="flow-body">
+                            <strong>Tapcells</strong>
+                            <span>Insert substrate/well contacts for latch-up prevention</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">4</div>
+                        <div class="flow-body">
+                            <strong>Placement</strong>
+                            <span>Global placement (density 0.5) → detailed legalization</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">5</div>
+                        <div class="flow-body">
+                            <strong>Clock Tree Synthesis</strong>
+                            <span>Balanced clock distribution using BUF_X4 buffers</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">6</div>
+                        <div class="flow-body">
+                            <strong>Routing</strong>
+                            <span>Global route → detailed route on metal layers</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">7</div>
+                        <div class="flow-body">
+                            <strong>Reports & Output</strong>
+                            <span>Timing, area, power → write Mycounter.def + Mycounter.gds</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">🖥️ Terminal</span></div>
+                <pre><code>$ openroad openroad_run.tcl</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- FILE MAP -->
+    <section class="section alt" id="files">
+        <div class="container">
+            <h2>📁 Complete File Map</h2>
+            <div class="card">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Origin</th>
+                                <th>Stage</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>Mycounter.v</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Design</td>
+                                <td>Synthesizable RTL</td>
+                            </tr>
+                            <tr>
+                                <td><code>Testbench.v</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Simulate</td>
+                                <td>Testbench</td>
+                            </tr>
+                            <tr>
+                                <td><code>yosys_run.tcl</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Synthesize</td>
+                                <td>Yosys script</td>
+                            </tr>
+                            <tr>
+                                <td><code>Mycounter.sdc</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>PDA</td>
+                                <td>Timing constraints</td>
+                            </tr>
+                            <tr>
+                                <td><code>openroad_run.tcl</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>PDA</td>
+                                <td>OpenROAD script</td>
+                            </tr>
+                            <tr>
+                                <td><code>Mycounter_synth.v</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Synthesize</td>
+                                <td>Gate-level netlist</td>
+                            </tr>
+                            <tr>
+                                <td><code>Mycounter_synth.png</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Synthesize</td>
+                                <td>Circuit schematic</td>
+                            </tr>
+                            <tr>
+                                <td><code>Mycounter.def</code></td>
+                                <td><span class="badge gen">🤖 OpenROAD</span></td>
+                                <td>PDA</td>
+                                <td>Final layout (DEF)</td>
+                            </tr>
+                            <tr>
+                                <td><code>count.vcd</code></td>
+                                <td><span class="badge gen">🤖 iverilog</span></td>
+                                <td>Simulate</td>
+                                <td>Waveform dump</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Commands Cheat Sheet</h3>
+                <pre><code><span class="cm"># 1. Simulate</span>
+$ iverilog -o Mycounter Mycounter.v Testbench.v && vvp Mycounter
+
+<span class="cm"># 2. Synthesize</span>
+$ yosys -s yosys_run.tcl
+
+<span class="cm"># 3. Physical Design</span>
+$ openroad openroad_run.tcl</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-brand">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+            </div>
+            <p>Open-source VLSI design exploration</p>
+            <div class="footer-links">
+                <a href="https://github.com/steveicarus/iverilog" target="_blank">Icarus Verilog</a>
+                <a href="https://github.com/YosysHQ/yosys" target="_blank">Yosys</a>
+                <a href="https://github.com/The-OpenROAD-Project/OpenROAD" target="_blank">OpenROAD</a>
+            </div>
+            <p class="copyright">© 2026 VyomansLab. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const nav = document.querySelector('.nav');
+        window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.card, .pipe-node, .flow-step, .result-card').forEach(el => obs.observe(el));
+    </script>
+</body>
+
+</html>

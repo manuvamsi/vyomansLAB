@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VyomansLab — VLSI Design Projects</title>
+    <meta name="description"
+        content="VyomansLab: Open-source VLSI design projects exploring RTL design, synthesis, and physical design with Yosys, OpenROAD, and the Nangate45 PDK.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ===== HOME PAGE EXTRAS ===== */
+        .home-hero {
+            padding: 140px 24px 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .home-hero .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 50% at 50% 30%, rgba(99, 102, 241, 0.1) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 70% 70%, rgba(6, 182, 212, 0.06) 0%, transparent 50%),
+                linear-gradient(180deg, #0a0e1a 0%, #0d1220 100%);
+        }
+
+        .home-hero h1 {
+            position: relative;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, #f8fafc 0%, #818cf8 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+        }
+
+        .home-hero .tagline {
+            position: relative;
+            color: #94a3b8;
+            font-size: 1.1rem;
+            max-width: 550px;
+            margin: 0 auto 32px;
+            line-height: 1.6;
+        }
+
+        .home-hero .stat-row {
+            position: relative;
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .home-stat {
+            text-align: center;
+        }
+
+        .home-stat .val {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #f1f5f9;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .home-stat .lbl {
+            font-size: 0.72rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* Projects grid */
+        .projects-section {
+            padding: 60px 0 80px;
+        }
+
+        .projects-section .container>h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+
+        .projects-section .container>p {
+            color: #94a3b8;
+            margin-bottom: 32px;
+            font-size: 0.95rem;
+        }
+
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+        }
+
+        .project-card {
+            background: #111827;
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.35s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: block;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.35s;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(6, 182, 212, 0.03) 100%);
+        }
+
+        .project-card:hover {
+            border-color: #6366f1;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.12);
+        }
+
+        .project-card:hover::before {
+            opacity: 1;
+        }
+
+        .project-card * {
+            position: relative;
+        }
+
+        .pc-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .pc-icon {
+            font-size: 2rem;
+        }
+
+        .pc-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pc-status.complete {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .pc-status.partial {
+            background: rgba(234, 179, 8, 0.08);
+            color: #eab308;
+        }
+
+        .pc-status.sim-only {
+            background: rgba(99, 102, 241, 0.1);
+            color: #818cf8;
+        }
+
+        .pc-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+
+        .pc-desc {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .pc-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .pc-tag {
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            background: #1a2236;
+            border: 1px solid #1e293b;
+            color: #94a3b8;
+        }
+
+        .pc-stats {
+            display: flex;
+            gap: 20px;
+            border-top: 1px solid #1e293b;
+            padding-top: 14px;
+        }
+
+        .pc-stat-item {
+            font-size: 0.78rem;
+            color: #64748b;
+        }
+
+        .pc-stat-item strong {
+            color: #cbd5e1;
+        }
+
+        .pc-arrow {
+            position: absolute;
+            bottom: 28px;
+            right: 28px;
+            color: #334155;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .project-card:hover .pc-arrow {
+            color: #6366f1;
+            transform: translateX(4px);
+        }
+
+        /* Tools section */
+        .tools-section {
+            padding: 60px 0;
+            border-top: 1px solid #1e293b;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 24px;
+        }
+
+        .tool-card {
+            background: #111827;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .tool-card:hover {
+            border-color: #1e293b;
+            transform: translateY(-2px);
+        }
+
+        .tool-icon {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .tool-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .tool-role {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .pc-outputs {
+            font-size: 0.72rem;
+            color: #64748b;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #1e293b;
+        }
+
+        .pc-outputs code {
+            background: #1a2236;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.68rem;
+            color: #94a3b8;
+        }
+
+        @media(max-width:600px) {
+            .project-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tools-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="#projects">Projects</a>
+                <a href="#tools">Tools</a>
+                <a href="install.html">Install</a>
+            </div>
+            <a href="https://github.com/vyomanslab" class="gh-btn" target="_blank">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="home-hero">
+        <div class="hero-bg"></div>
+        <h1>VyomansLab</h1>
+        <p class="tagline">Exploring VLSI design from RTL to silicon using 100% open-source EDA tools. Each project
+            walks through simulation, synthesis, and physical design.</p>
+        <div class="stat-row">
+            <div class="home-stat">
+                <div class="val">5</div>
+                <div class="lbl">Projects</div>
+            </div>
+            <div class="home-stat">
+                <div class="val">3</div>
+                <div class="lbl">Full PDA Flows</div>
+            </div>
+            <div class="home-stat">
+                <div class="val">Nangate45</div>
+                <div class="lbl">Target PDK</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section class="projects-section" id="projects">
+        <div class="container">
+            <h2>📂 Projects</h2>
+            <p>Click a project to read the full walkthrough.</p>
+
+            <div class="project-grid">
+
+                <!-- Project 1: Traffic Light v2 (full blog) -->
+                <a href="traffic-light-rtl-to-pda.html" class="project-card">
+                    <div class="pc-header">
+                        <span class="pc-icon">🚦</span>
+                        <span class="pc-status complete">Full PDA ✓</span>
+                    </div>
+                    <div class="pc-title">Traffic Light Controller v2</div>
+                    <div class="pc-desc">5-state FSM controlling highway &amp; country road intersection with
+                        counter-based delays. Full RTL → Synthesis → PDA flow.</div>
+                    <div class="pc-tags">
+                        <span class="pc-tag">Verilog</span>
+                        <span class="pc-tag">Yosys</span>
+                        <span class="pc-tag">OpenROAD</span>
+                        <span class="pc-tag">Nangate45</span>
+                    </div>
+                    <div class="pc-stats">
+                        <span class="pc-stat-item"><strong>42</strong> cells</span>
+                        <span class="pc-stat-item"><strong>68.9</strong> µm²</span>
+                        <span class="pc-stat-item"><strong>85%</strong> util</span>
+                        <span class="pc-stat-item"><strong>0</strong> DRC</span>
+                    </div>
+                    <div class="pc-outputs">📦 <code>t_final.def</code> · <code>t_synth.v</code> ·
+                        <code>area_report.txt</code>
+                    </div>
+                    <span class="pc-arrow">→</span>
+                </a>
+
+                <a href="traffic-light-v1.html" class="project-card">
+                    <div class="pc-header">
+                        <span class="pc-icon">🚥</span>
+                        <span class="pc-status complete">Full Flow ✓</span>
+                    </div>
+                    <div class="pc-title">Traffic Light Controller v1</div>
+                    <div class="pc-desc">3-state traffic light FSM (RED → GREEN → YELLOW) with timer-based transitions.
+                        Includes simulation, coverage, synthesis, and OpenROAD PDA.</div>
+                    <div class="pc-tags">
+                        <span class="pc-tag">Verilog</span>
+                        <span class="pc-tag">Yosys</span>
+                        <span class="pc-tag">OpenROAD</span>
+                        <span class="pc-tag">Covered</span>
+                    </div>
+                    <div class="pc-stats">
+                        <span class="pc-stat-item"><strong>20</strong> cells</span>
+                        <span class="pc-stat-item"><strong>45.5</strong> µm²</span>
+                        <span class="pc-stat-item"><strong>58</strong> lines RTL</span>
+                    </div>
+                    <div class="pc-outputs">📦 <code>traffic_synth.v</code> · <code>traffic_synth.png</code> ·
+                        <code>traffic.vcd</code>
+                    </div>
+                    <span class="pc-arrow">→</span>
+                </a>
+
+                <a href="counter-full-pda.html" class="project-card">
+                    <div class="pc-header">
+                        <span class="pc-icon">🔢</span>
+                        <span class="pc-status complete">Full Flow ✓</span>
+                    </div>
+                    <div class="pc-title">4-Bit Counter — Full PDA</div>
+                    <div class="pc-desc">Simple 4-bit synchronous counter taken through the complete VLSI flow:
+                        simulation → coverage → Yosys synthesis → OpenROAD floorplan, placement &amp; routing.</div>
+                    <div class="pc-tags">
+                        <span class="pc-tag">Verilog</span>
+                        <span class="pc-tag">Yosys</span>
+                        <span class="pc-tag">OpenROAD</span>
+                        <span class="pc-tag">Coverage</span>
+                    </div>
+                    <div class="pc-stats">
+                        <span class="pc-stat-item"><strong>14</strong> cells</span>
+                        <span class="pc-stat-item"><strong>27</strong> µm²</span>
+                        <span class="pc-stat-item"><strong>15</strong> lines RTL</span>
+                    </div>
+                    <div class="pc-outputs">📦 <code>Mycounter.def</code> · <code>Mycounter_synth.v</code> ·
+                        <code>Mycounter_synth.png</code>
+                    </div>
+                    <span class="pc-arrow">→</span>
+                </a>
+
+                <a href="counter-sdc.html" class="project-card">
+                    <div class="pc-header">
+                        <span class="pc-icon">⏱️</span>
+                        <span class="pc-status partial">Sim + SDC</span>
+                    </div>
+                    <div class="pc-title">Counter with Timing Constraints</div>
+                    <div class="pc-desc">Extended counter design with SDC timing constraints. Explores clock definition,
+                        input/output delay specifications for synthesis-ready designs.</div>
+                    <div class="pc-tags">
+                        <span class="pc-tag">Verilog</span>
+                        <span class="pc-tag">SDC</span>
+                        <span class="pc-tag">Constraints</span>
+                    </div>
+                    <div class="pc-stats">
+                        <span class="pc-stat-item"><strong>learning_2</strong></span>
+                        <span class="pc-stat-item"><strong>SDC</strong> constraints</span>
+                    </div>
+                    <div class="pc-outputs">📦 <code>counter.sdc</code> · <code>counter.vcd</code></div>
+                    <span class="pc-arrow">→</span>
+                </a>
+
+                <!-- Project 5: Icarus Counter (sim only) -->
+                <div class="project-card">
+                    <div class="pc-header">
+                        <span class="pc-icon">🧪</span>
+                        <span class="pc-status sim-only">Simulation</span>
+                    </div>
+                    <div class="pc-title">4-Bit Counter — Simulation</div>
+                    <div class="pc-desc">First-principles counter design focusing on Icarus Verilog simulation and code
+                        coverage analysis with Covered. The starting point for learning Verilog.</div>
+                    <div class="pc-tags">
+                        <span class="pc-tag">Verilog</span>
+                        <span class="pc-tag">Icarus Verilog</span>
+                        <span class="pc-tag">Covered</span>
+                        <span class="pc-tag">GTKWave</span>
+                    </div>
+                    <div class="pc-stats">
+                        <span class="pc-stat-item"><strong>icarus_codes</strong></span>
+                        <span class="pc-stat-item"><strong>VCD</strong> waveform</span>
+                    </div>
+                    <div class="pc-outputs">📦 <code>count.vcd</code> · <code>Mycounter.cdd</code></div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- TOOLCHAIN -->
+    <section class="tools-section" id="tools">
+        <div class="container">
+            <h2 style="font-size:1.5rem; font-weight:800; color:#f1f5f9;">🔧 Toolchain</h2>
+            <p style="color:#94a3b8; font-size:0.9rem;">All projects use these open-source tools:</p>
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <div class="tool-icon">📝</div>
+                    <div class="tool-name">Icarus Verilog</div>
+                    <div class="tool-role">RTL Simulation</div>
+                </div>
+                <div class="tool-card">
+                    <div class="tool-icon">📊</div>
+                    <div class="tool-name">GTKWave</div>
+                    <div class="tool-role">Waveform Viewer</div>
+                </div>
+                <div class="tool-card">
+                    <div class="tool-icon">🔍</div>
+                    <div class="tool-name">Covered</div>
+                    <div class="tool-role">Code Coverage</div>
+                </div>
+                <div class="tool-card">
+                    <div class="tool-icon">⚙️</div>
+                    <div class="tool-name">Yosys</div>
+                    <div class="tool-role">Logic Synthesis</div>
+                </div>
+                <div class="tool-card">
+                    <div class="tool-icon">🏗️</div>
+                    <div class="tool-name">OpenROAD</div>
+                    <div class="tool-role">Physical Design</div>
+                </div>
+                <div class="tool-card">
+                    <div class="tool-icon">🔬</div>
+                    <div class="tool-name">Nangate45 PDK</div>
+                    <div class="tool-role">Standard Cell Library</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-brand">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+            </div>
+            <p>Open-source VLSI design exploration</p>
+            <div class="footer-links">
+                <a href="https://github.com/steveicarus/iverilog" target="_blank">Icarus Verilog</a>
+                <a href="https://github.com/YosysHQ/yosys" target="_blank">Yosys</a>
+                <a href="https://github.com/The-OpenROAD-Project/OpenROAD" target="_blank">OpenROAD</a>
+            </div>
+            <p class="copyright">© 2026 VyomansLab. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Nav scroll effect
+        const nav = document.querySelector('.nav');
+        window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+
+        // Animate cards on scroll
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach((e, i) => {
+                if (e.isIntersecting) {
+                    setTimeout(() => e.target.style.cssText = 'opacity:1;transform:translateY(0)', i * 80);
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.project-card, .tool-card').forEach(el => {
+            el.style.cssText = 'opacity:0;transform:translateY(20px);transition:all 0.5s';
+            obs.observe(el);
+        });
+    </script>
+</body>
+
+</html>

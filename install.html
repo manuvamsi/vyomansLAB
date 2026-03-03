@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation Guide — VyomansLab</title>
+    <meta name="description"
+        content="Step-by-step installation guide for the open-source VLSI EDA toolchain: Icarus Verilog, GTKWave, Covered, Yosys, and OpenROAD.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .install-hero {
+            padding: 140px 24px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .install-hero .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 50% at 50% 30%, rgba(34, 197, 94, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 70% 70%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
+                linear-gradient(180deg, #0a0e1a 0%, #0d1220 100%);
+        }
+
+        .install-hero h1 {
+            position: relative;
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            background: linear-gradient(135deg, #f8fafc 0%, #22c55e 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+
+        .install-hero p {
+            position: relative;
+            color: #94a3b8;
+            font-size: 1rem;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* Tool sections */
+        .tool-section {
+            padding: 50px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tool-section:last-of-type {
+            border-bottom: none;
+        }
+
+        .tool-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .tool-num {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+            flex-shrink: 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tool-num.sim {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .tool-num.wave {
+            background: rgba(6, 182, 212, 0.1);
+            color: #06b6d4;
+        }
+
+        .tool-num.cov {
+            background: rgba(249, 115, 22, 0.1);
+            color: #f97316;
+        }
+
+        .tool-num.synth {
+            background: rgba(99, 102, 241, 0.1);
+            color: #818cf8;
+        }
+
+        .tool-num.pda {
+            background: rgba(234, 179, 8, 0.1);
+            color: #eab308;
+        }
+
+        .tool-header h2 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-white);
+        }
+
+        .tool-header .tool-role-label {
+            font-size: 0.82rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .install-cmd {
+            background: #0c1017;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 16px 0;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            overflow-x: auto;
+        }
+
+        .install-cmd code {
+            color: #c9d1d9;
+        }
+
+        .install-note {
+            display: flex;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin: 14px 0;
+            font-size: 0.85rem;
+            background: var(--accent-soft);
+            border-left: 3px solid var(--accent);
+        }
+
+        .install-note.warn {
+            background: rgba(234, 179, 8, 0.06);
+            border-left-color: #eab308;
+        }
+
+        .install-note strong {
+            color: var(--text-white);
+        }
+
+        .verify-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 14px;
+        }
+
+        .verify-box h4 {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        /* Prerequisites */
+        .prereqs {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .prereq-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .prereq-item strong {
+            color: var(--text-white);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html">Projects</a>
+                <a href="install.html">Install</a>
+            </div>
+            <a href="https://github.com/vyomanslab" class="gh-btn" target="_blank">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="install-hero">
+        <div class="hero-bg"></div>
+        <h1>🔧 Installation Guide</h1>
+        <p>Set up the complete open-source VLSI EDA toolchain on Ubuntu/Debian Linux.</p>
+    </section>
+
+    <!-- PREREQUISITES -->
+    <section class="section">
+        <div class="container">
+            <h2 style="font-size:1.4rem; font-weight:800; color:#f1f5f9; margin-bottom:12px;">Prerequisites</h2>
+            <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:16px;">Make sure your system is up to date before
+                installing:</p>
+            <pre class="install-cmd"><code><span class="cm"># Update package lists</span>
+<span class="fn">sudo apt update</span> && <span class="fn">sudo apt upgrade</span> -y
+
+<span class="cm"># Install essential build tools</span>
+<span class="fn">sudo apt install</span> -y build-essential git cmake python3 python3-pip</code></pre>
+            <div class="prereqs">
+                <div class="prereq-item"><strong>OS:</strong> Ubuntu 20.04+ / Debian 11+</div>
+                <div class="prereq-item"><strong>RAM:</strong> 4 GB minimum</div>
+                <div class="prereq-item"><strong>Disk:</strong> ~5 GB free space</div>
+                <div class="prereq-item"><strong>Shell:</strong> bash / zsh</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TOOL 1: Icarus Verilog -->
+    <section class="tool-section">
+        <div class="container">
+            <div class="tool-header">
+                <div class="tool-num sim">1</div>
+                <div>
+                    <h2>Icarus Verilog</h2>
+                    <div class="tool-role-label">RTL Simulation — compile & run Verilog designs</div>
+                </div>
+            </div>
+            <pre class="install-cmd"><code><span class="cm"># Install Icarus Verilog</span>
+<span class="fn">sudo apt install</span> -y iverilog</code></pre>
+            <div class="verify-box">
+                <h4>✅ Verify Installation</h4>
+                <pre class="install-cmd"><code>$ iverilog -V
+<span class="cm"># Should show: Icarus Verilog version 12.0 (or similar)</span>
+
+$ <span class="fn">echo</span> 'module test; initial $display("Hello Verilog!"); endmodule' > /tmp/test.v
+$ iverilog -o /tmp/test /tmp/test.v && vvp /tmp/test
+<span class="cm"># Should print: Hello Verilog!</span></code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- TOOL 2: GTKWave -->
+    <section class="tool-section">
+        <div class="container">
+            <div class="tool-header">
+                <div class="tool-num wave">2</div>
+                <div>
+                    <h2>GTKWave</h2>
+                    <div class="tool-role-label">Waveform Viewer — view .vcd simulation dumps</div>
+                </div>
+            </div>
+            <pre class="install-cmd"><code><span class="cm"># Install GTKWave</span>
+<span class="fn">sudo apt install</span> -y gtkwave</code></pre>
+            <div class="verify-box">
+                <h4>✅ Verify Installation</h4>
+                <pre class="install-cmd"><code>$ gtkwave --version
+<span class="cm"># Should show: GTKWave Analyzer v3.3.x</span></code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- TOOL 3: Covered -->
+    <section class="tool-section">
+        <div class="container">
+            <div class="tool-header">
+                <div class="tool-num cov">3</div>
+                <div>
+                    <h2>Covered</h2>
+                    <div class="tool-role-label">Code Coverage — analyze toggle, line, FSM coverage</div>
+                </div>
+            </div>
+            <pre class="install-cmd"><code><span class="cm"># Clone the Covered repository</span>
+<span class="fn">git clone</span> https://github.com/hpretl/verilog-covered.git
+<span class="fn">cd</span> verilog-covered
+
+<span class="cm"># Configure and build</span>
+<span class="fn">./configure</span>
+<span class="fn">make</span>
+<span class="fn">sudo make install</span></code></pre>
+            <div class="install-note warn">
+                <span>⚠️</span>
+                <span><strong>Build from source required.</strong> Covered is not in apt. If you encounter a
+                    <code>TCL_DSTRING</code> error during build, apply the patch from the project's GitHub issues
+                    page.</span>
+            </div>
+            <div class="verify-box">
+                <h4>✅ Verify Installation</h4>
+                <pre class="install-cmd"><code>$ covered --version
+<span class="cm"># Should show: Covered - Verilog Code Coverage Analyzer</span></code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- TOOL 4: Yosys -->
+    <section class="tool-section">
+        <div class="container">
+            <div class="tool-header">
+                <div class="tool-num synth">4</div>
+                <div>
+                    <h2>Yosys</h2>
+                    <div class="tool-role-label">Logic Synthesis — RTL to gate-level netlist</div>
+                </div>
+            </div>
+            <pre class="install-cmd"><code><span class="cm"># Install Yosys</span>
+<span class="fn">sudo apt install</span> -y yosys
+
+<span class="cm"># (Optional) Install Graphviz for circuit diagrams</span>
+<span class="fn">sudo apt install</span> -y graphviz</code></pre>
+            <div class="verify-box">
+                <h4>✅ Verify Installation</h4>
+                <pre class="install-cmd"><code>$ yosys -V
+<span class="cm"># Should show: Yosys 0.33 (or similar)</span></code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- TOOL 5: OpenROAD -->
+    <section class="tool-section">
+        <div class="container">
+            <div class="tool-header">
+                <div class="tool-num pda">5</div>
+                <div>
+                    <h2>OpenROAD</h2>
+                    <div class="tool-role-label">Physical Design Automation — floorplan, place, CTS, route</div>
+                </div>
+            </div>
+            <pre class="install-cmd"><code><span class="cm"># Option A: Build from source (recommended for latest features)</span>
+<span class="fn">git clone</span> --recursive https://github.com/The-OpenROAD-Project/OpenROAD.git
+<span class="fn">cd</span> OpenROAD
+
+<span class="cm"># Install dependencies (Ubuntu/Debian)</span>
+<span class="fn">sudo ./etc/DependencyInstaller.sh</span>
+
+<span class="cm"># Build</span>
+<span class="fn">mkdir build && cd build</span>
+<span class="fn">cmake</span> ..
+<span class="fn">make</span> -j$(nproc)
+<span class="fn">sudo make install</span></code></pre>
+            <div class="install-note">
+                <span>💡</span>
+                <span><strong>Build takes ~30-60 minutes</strong> depending on your system. The
+                    <code>DependencyInstaller.sh</code> script handles all required libraries (Boost, TCL, SWIG,
+                    etc.).</span>
+            </div>
+            <pre class="install-cmd"><code><span class="cm"># The Nangate45 PDK test files are included with OpenROAD:</span>
+<span class="fn">ls</span> OpenROAD/test/Nangate45/
+<span class="cm"># → Nangate45_typ.lib  Nangate45_tech.lef  Nangate45_stdcell.lef  Nangate45.tracks</span></code></pre>
+            <div class="verify-box">
+                <h4>✅ Verify Installation</h4>
+                <pre class="install-cmd"><code>$ openroad -version
+<span class="cm"># Should show: OpenROAD v2.0-xxxx</span>
+
+<span class="cm"># Quick test: start interactive mode</span>
+$ openroad
+openroad> help
+openroad> exit</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- ALL DONE -->
+    <section class="section" style="text-align:center; padding:60px 24px;">
+        <div class="container">
+            <h2 style="font-size:1.5rem; font-weight:800; color:#f1f5f9; margin-bottom:12px;">🎉 You're All Set!</h2>
+            <p style="color:#94a3b8; font-size:0.95rem; margin-bottom:24px;">All 5 tools installed. You can now run the
+                complete RTL → Simulation → Synthesis → PDA flow.</p>
+            <a href="index.html"
+                style="display:inline-block; padding:12px 28px; border-radius:10px; background:var(--accent); color:white; text-decoration:none; font-weight:700; font-size:0.9rem; transition:all 0.3s;">←
+                Back to Projects</a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-brand">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+            </div>
+            <p>Open-source VLSI design exploration</p>
+            <div class="footer-links">
+                <a href="https://github.com/steveicarus/iverilog" target="_blank">Icarus Verilog</a>
+                <a href="https://github.com/YosysHQ/yosys" target="_blank">Yosys</a>
+                <a href="https://github.com/The-OpenROAD-Project/OpenROAD" target="_blank">OpenROAD</a>
+            </div>
+            <p class="copyright">© 2026 VyomansLab. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Nav scroll effect
+        const nav = document.querySelector('.nav');
+        window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+    </script>
+</body>
+
+</html>

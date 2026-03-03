@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>From Verilog to Silicon — VyomansLab</title>
+    <meta name="description"
+        content="A complete guide to taking a Verilog traffic light controller through synthesis and physical design using open-source EDA tools.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="#overview">Overview</a>
+                <a href="#design">Design</a>
+                <a href="#simulation">Simulate</a>
+                <a href="#synthesis">Synthesize</a>
+                <a href="#pda">PDA</a>
+                <a href="#results">Results</a>
+                <a href="install.html">Install</a>
+            </div>
+            <a href="https://github.com/vyomanslab" class="gh-btn" target="_blank">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero" id="overview">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <div class="hero-badge">📘 Blog Post · VLSI Design Flow</div>
+            <h1>From Verilog to Silicon</h1>
+            <p class="hero-sub">Building a Traffic Light Controller with open-source EDA tools — Icarus Verilog, Yosys
+                &amp; OpenROAD on the Nangate45 PDK</p>
+            <div class="hero-meta">
+                <span>📅 March 3, 2026</span>
+                <span>⏱ 8 min read</span>
+                <span>🔧 Nangate45</span>
+            </div>
+            <div class="hero-tags">
+                <span class="htag">Verilog</span>
+                <span class="htag ys">Yosys</span>
+                <span class="htag or">OpenROAD</span>
+                <span class="htag iv">Icarus Verilog</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- PIPELINE -->
+    <section class="pipeline-section">
+        <div class="container">
+            <div class="pipeline">
+                <div class="pipe-node active">
+                    <div class="pipe-icon">📝</div>
+                    <div class="pipe-label">RTL</div>
+                    <div class="pipe-file">t.v</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node">
+                    <div class="pipe-icon">🔬</div>
+                    <div class="pipe-label">Simulate</div>
+                    <div class="pipe-file">iverilog</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node">
+                    <div class="pipe-icon">⚙️</div>
+                    <div class="pipe-label">Synthesize</div>
+                    <div class="pipe-file">Yosys</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node">
+                    <div class="pipe-icon">🏗️</div>
+                    <div class="pipe-label">PDA</div>
+                    <div class="pipe-file">OpenROAD</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node final">
+                    <div class="pipe-icon">✅</div>
+                    <div class="pipe-label">Layout</div>
+                    <div class="pipe-file">DEF</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- INTRO -->
+    <section class="section" id="intro">
+        <div class="container">
+            <div class="prose">
+                <h2>What We're Building</h2>
+                <p>In this post, we'll take a <strong>traffic light controller</strong> FSM from behavioral Verilog all
+                    the way through to a placed-and-routed silicon layout — using <em>only</em> open-source tools. The
+                    design manages a highway/country-road intersection with sensor-triggered state transitions and
+                    counter-based timing delays.</p>
+                <div class="callout info">
+                    <div class="callout-icon">💡</div>
+                    <div class="callout-text"><strong>Prerequisites:</strong> Icarus Verilog, Yosys, and OpenROAD
+                        installed. The Nangate45 PDK files (included with OpenROAD's test suite).</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 1: DESIGN -->
+    <section class="section alt" id="design">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">01</span>
+                <div>
+                    <h2>Design Entry — Synthesizable RTL</h2>
+                    <p class="step-desc">A 5-state FSM with counter-based timing delays</p>
+                </div>
+            </div>
+
+            <!-- Traffic Light Demo -->
+            <div class="tl-demo-wrap">
+                <div class="tl-demo">
+                    <div class="tl-col">
+                        <div class="tl-title">Highway</div>
+                        <div class="tl-housing">
+                            <div class="tl-light red" id="hr"></div>
+                            <div class="tl-light yellow" id="hy"></div>
+                            <div class="tl-light green on" id="hg"></div>
+                        </div>
+                        <div class="tl-state" id="hLabel">GREEN</div>
+                    </div>
+                    <div class="tl-state-display">
+                        <div class="current-state" id="stateDisplay">S0</div>
+                        <div class="state-timer" id="timerDisplay"></div>
+                    </div>
+                    <div class="tl-col">
+                        <div class="tl-title">Country Road</div>
+                        <div class="tl-housing">
+                            <div class="tl-light red on" id="cr"></div>
+                            <div class="tl-light yellow" id="cy"></div>
+                            <div class="tl-light green" id="cg"></div>
+                        </div>
+                        <div class="tl-state" id="cLabel">RED</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- State Table -->
+            <div class="card">
+                <h3>FSM State Encoding</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>State</th>
+                                <th>Highway</th>
+                                <th>Country</th>
+                                <th>Transition</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>S0</code></td>
+                                <td><span class="dot green"></span> GREEN</td>
+                                <td><span class="dot red"></span> RED</td>
+                                <td>When X=1 → S1</td>
+                            </tr>
+                            <tr>
+                                <td><code>S1</code></td>
+                                <td><span class="dot yellow"></span> YELLOW</td>
+                                <td><span class="dot red"></span> RED</td>
+                                <td>After 3 clocks → S2</td>
+                            </tr>
+                            <tr>
+                                <td><code>S2</code></td>
+                                <td><span class="dot red"></span> RED</td>
+                                <td><span class="dot red"></span> RED</td>
+                                <td>After 2 clocks → S3</td>
+                            </tr>
+                            <tr>
+                                <td><code>S3</code></td>
+                                <td><span class="dot red"></span> RED</td>
+                                <td><span class="dot green"></span> GREEN</td>
+                                <td>When X=0 → S4</td>
+                            </tr>
+                            <tr>
+                                <td><code>S4</code></td>
+                                <td><span class="dot red"></span> RED</td>
+                                <td><span class="dot yellow"></span> YELLOW</td>
+                                <td>After 3 clocks → S0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Code -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="file-badge">📄 t.v</span>
+                    <span class="lang-badge">Verilog</span>
+                </div>
+                <pre><code><span class="kw">module</span> <span class="fn">sig_control</span> (
+    <span class="kw">input wire</span>       clock, clear, X,
+    <span class="kw">output reg</span> [<span class="num">1</span>:<span class="num">0</span>] hwy, cntry
+);
+    <span class="kw">parameter</span> RED=<span class="num">2'd0</span>, YELLOW=<span class="num">2'd1</span>, GREEN=<span class="num">2'd2</span>;
+    <span class="kw">parameter</span> S0=<span class="num">3'd0</span>, S1=<span class="num">3'd1</span>, S2=<span class="num">3'd2</span>, S3=<span class="num">3'd3</span>, S4=<span class="num">3'd4</span>;
+    <span class="kw">parameter</span> Y2RDELAY=<span class="num">3</span>, R2GDELAY=<span class="num">2</span>;
+
+    <span class="kw">reg</span> [<span class="num">2</span>:<span class="num">0</span>] state, next_state;
+    <span class="kw">reg</span> [<span class="num">2</span>:<span class="num">0</span>] count, next_count;
+
+    <span class="cm">// Sequential: state + counter</span>
+    <span class="kw">always</span> @(<span class="kw">posedge</span> clock) <span class="kw">begin</span>
+        <span class="kw">if</span> (clear) <span class="kw">begin</span>
+            state &lt;= S0;  count &lt;= <span class="num">3'd0</span>;
+        <span class="kw">end else begin</span>
+            state &lt;= next_state;  count &lt;= next_count;
+        <span class="kw">end</span>
+    <span class="kw">end</span>
+
+    <span class="cm">// Combinational: next state with counter-based delays</span>
+    <span class="kw">always</span> @(*) <span class="kw">begin</span>
+        next_state = state;  next_count = <span class="num">3'd0</span>;
+        <span class="kw">case</span> (state)
+            S0: next_state = X ? S1 : S0;
+            S1: <span class="kw">if</span> (count==Y2RDELAY-<span class="num">1</span>) next_state=S2;
+                <span class="kw">else</span> <span class="kw">begin</span> next_state=S1; next_count=count+<span class="num">1</span>; <span class="kw">end</span>
+            S2: <span class="kw">if</span> (count==R2GDELAY-<span class="num">1</span>) next_state=S3;
+                <span class="kw">else</span> <span class="kw">begin</span> next_state=S2; next_count=count+<span class="num">1</span>; <span class="kw">end</span>
+            S3: next_state = X ? S3 : S4;
+            S4: <span class="kw">if</span> (count==Y2RDELAY-<span class="num">1</span>) next_state=S0;
+                <span class="kw">else</span> <span class="kw">begin</span> next_state=S4; next_count=count+<span class="num">1</span>; <span class="kw">end</span>
+        <span class="kw">endcase</span>
+    <span class="kw">end</span>
+    <span class="cm">// Output logic decodes state → light signals (omitted for brevity)</span>
+<span class="kw">endmodule</span></code></pre>
+            </div>
+
+            <div class="callout warn">
+                <div class="callout-icon">⚠️</div>
+                <div class="callout-text"><strong>Why rewrite?</strong> The original used
+                    <code>repeat(@posedge clock)</code> for delays — this is simulation-only and <strong>cannot be
+                        synthesized</strong>. We replaced it with a register-based counter that counts clock edges in
+                    timed states (S1, S2, S4).
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 2: SIMULATION -->
+    <section class="section" id="simulation">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">02</span>
+                <div>
+                    <h2>Simulation — Verify Before Synthesis</h2>
+                    <p class="step-desc">Compile &amp; run with Icarus Verilog to confirm FSM behavior</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">🖥️ Terminal</span></div>
+                <pre><code><span class="cm"># Compile RTL + testbench</span>
+$ iverilog -o t_sim t.v t_tb.v
+
+<span class="cm"># Run simulation</span>
+$ vvp t_sim
+
+<span class="cm"># View waveforms (optional)</span>
+$ gtkwave t.vcd</code></pre>
+            </div>
+
+            <div class="file-table">
+                <h3>Files at This Stage</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Origin</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>t.v</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>RTL design</td>
+                            </tr>
+                            <tr>
+                                <td><code>t_tb.v</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Testbench with stimulus &amp; monitor</td>
+                            </tr>
+                            <tr>
+                                <td><code>t_sim</code></td>
+                                <td><span class="badge gen">🤖 Generated</span></td>
+                                <td>Compiled simulation binary</td>
+                            </tr>
+                            <tr>
+                                <td><code>t.vcd</code></td>
+                                <td><span class="badge gen">🤖 Generated</span></td>
+                                <td>Waveform dump for GTKWave</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 3: SYNTHESIS -->
+    <section class="section alt" id="synthesis">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">03</span>
+                <div>
+                    <h2>Synthesis — RTL to Gates (Yosys)</h2>
+                    <p class="step-desc">Map behavioral Verilog to real Nangate45 standard cells</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">📄 yosys_run.tcl</span><span
+                        class="lang-badge">Tcl</span></div>
+                <pre><code><span class="cm"># 1. Read design</span>
+<span class="fn">read_verilog</span> t.v
+
+<span class="cm"># 2. Generic synthesis — infer FSM, optimize</span>
+<span class="fn">synth</span> -top sig_control
+
+<span class="cm"># 3. Map flip-flops → Nangate45 DFF cells</span>
+<span class="fn">dfflibmap</span> -liberty Nangate45_typ.lib
+
+<span class="cm"># 4. Map combinational logic → Nangate45 gates</span>
+<span class="fn">abc</span> -liberty Nangate45_typ.lib
+
+<span class="cm"># 5. Cleanup, reports, output</span>
+<span class="fn">opt_clean</span> -purge
+<span class="fn">tee</span> -o area_report.txt stat -liberty Nangate45_typ.lib
+<span class="fn">write_verilog</span> t_synth.v</code></pre>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">🖥️ Terminal</span></div>
+                <pre><code>$ yosys -s yosys_run.tcl</code></pre>
+            </div>
+
+            <!-- Library explainer -->
+            <div class="card highlight">
+                <h3>📚 Library File: <code>Nangate45_typ.lib</code></h3>
+                <p>The <strong>Liberty (.lib)</strong> file is the heart of technology mapping. It defines every
+                    standard cell available in the Nangate45 PDK:</p>
+                <ul>
+                    <li><strong>Logical function</strong> — what each cell does (AND, OR, DFF, BUF…)</li>
+                    <li><strong>Timing arcs</strong> — input-to-output propagation delay</li>
+                    <li><strong>Area</strong> — physical size of each cell</li>
+                    <li><strong>Power</strong> — dynamic and leakage power</li>
+                </ul>
+                <p><code>dfflibmap</code> uses it to replace generic flip-flops with real DFF_X1 cells. <code>abc</code>
+                    uses it to map all combinational logic to real gates.</p>
+            </div>
+
+            <!-- Results -->
+            <div class="card">
+                <h3>Synthesis Results</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-val">42</div>
+                        <div class="stat-label">Total Cells</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-val">8</div>
+                        <div class="stat-label">Flip-Flops</div>
+                    </div>
+                    <div class="stat-card accent">
+                        <div class="stat-val">68.9</div>
+                        <div class="stat-label">Area (µm²)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-val">14</div>
+                        <div class="stat-label">Cell Types</div>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cell</th>
+                                <th>Count</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>DFF_X1</code></td>
+                                <td>8</td>
+                                <td>D Flip-Flops (state + counter)</td>
+                            </tr>
+                            <tr>
+                                <td><code>INV_X1</code></td>
+                                <td>7</td>
+                                <td>Inverters</td>
+                            </tr>
+                            <tr>
+                                <td><code>NAND2_X1</code></td>
+                                <td>5</td>
+                                <td>2-input NAND gates</td>
+                            </tr>
+                            <tr>
+                                <td><code>NOR3_X1</code></td>
+                                <td>4</td>
+                                <td>3-input NOR gates</td>
+                            </tr>
+                            <tr>
+                                <td><code>BUF_X1</code></td>
+                                <td>3</td>
+                                <td>Buffers</td>
+                            </tr>
+                            <tr>
+                                <td><code>NAND3_X1</code></td>
+                                <td>3</td>
+                                <td>3-input NAND gates</td>
+                            </tr>
+                            <tr>
+                                <td><code>OAI22_X1</code></td>
+                                <td>3</td>
+                                <td>OR-AND-Invert complex gates</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><em>+ 7 more types</em></td>
+                                <td><em>AOI, NOR, OR, XNOR gates</em></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="file-table">
+                <h3>Files Generated</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Origin</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>t_synth.v</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Gate-level netlist → input to OpenROAD</td>
+                            </tr>
+                            <tr>
+                                <td><code>area_report.txt</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Cell count &amp; area breakdown</td>
+                            </tr>
+                            <tr>
+                                <td><code>timing_report.txt</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Longest combinational path</td>
+                            </tr>
+                            <tr>
+                                <td><code>t_synth.dot</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Circuit schematic (Graphviz format)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 4: PDA -->
+    <section class="section" id="pda">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">04</span>
+                <div>
+                    <h2>Physical Design Automation (OpenROAD)</h2>
+                    <p class="step-desc">Floorplan → Place → CTS → Route → Layout</p>
+                </div>
+            </div>
+
+            <!-- SDC -->
+            <div class="card">
+                <div class="card-header"><span class="file-badge">📄 t.sdc</span><span class="lang-badge">SDC</span>
+                </div>
+                <pre><code><span class="cm"># 10ns clock = 100 MHz</span>
+<span class="fn">create_clock</span> [get_ports clock] -name core_clock -period <span class="num">10.0</span>
+
+<span class="cm"># Input constraints: signals arrive 2ns after clock</span>
+<span class="fn">set_input_delay</span>  <span class="num">2.0</span> -clock core_clock [get_ports clear]
+<span class="fn">set_input_delay</span>  <span class="num">2.0</span> -clock core_clock [get_ports X]
+
+<span class="cm"># Output constraints: signals must be ready 2ns before next edge</span>
+<span class="fn">set_output_delay</span> <span class="num">2.0</span> -clock core_clock [get_ports {hwy[0]}]
+<span class="fn">set_output_delay</span> <span class="num">2.0</span> -clock core_clock [get_ports {hwy[1]}]
+<span class="fn">set_output_delay</span> <span class="num">2.0</span> -clock core_clock [get_ports {cntry[0]}]
+<span class="fn">set_output_delay</span> <span class="num">2.0</span> -clock core_clock [get_ports {cntry[1]}]</code></pre>
+            </div>
+
+            <!-- PDK Files -->
+            <div class="card highlight">
+                <h3>📚 PDK Files Used by OpenROAD</h3>
+                <p>All sourced from <code>OpenROAD/test/Nangate45/</code>:</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Format</th>
+                                <th>Contains</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>Nangate45_typ.lib</code></td>
+                                <td>Liberty</td>
+                                <td><strong>Electrical:</strong> timing, power, capacitance per cell</td>
+                            </tr>
+                            <tr>
+                                <td><code>Nangate45_tech.lef</code></td>
+                                <td>Tech LEF</td>
+                                <td><strong>Metal layers:</strong> names, widths, spacing, vias</td>
+                            </tr>
+                            <tr>
+                                <td><code>Nangate45_stdcell.lef</code></td>
+                                <td>Cell LEF</td>
+                                <td><strong>Cell geometry:</strong> pin locations, cell dimensions</td>
+                            </tr>
+                            <tr>
+                                <td><code>Nangate45.tracks</code></td>
+                                <td>Tracks</td>
+                                <td><strong>Routing grid:</strong> pitch &amp; offset per metal layer</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="callout info compact">
+                    <div class="callout-icon">💡</div>
+                    <div class="callout-text"><strong>.lib vs .lef:</strong> Liberty = electrical ("50ps delay, 1.2µm²
+                        area"). LEF = physical ("pin A at position 0.3,0.7 on metal1"). Yosys needs only
+                        <code>.lib</code>. OpenROAD needs <strong>both</strong>.
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDA Flow Steps -->
+            <div class="card">
+                <h3>PDA Flow Stages</h3>
+                <div class="flow-steps">
+                    <div class="flow-step">
+                        <div class="flow-num">1</div>
+                        <div class="flow-body">
+                            <strong>Read Design</strong>
+                            <span>Load liberty, LEF, synthesized netlist, SDC constraints</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">2</div>
+                        <div class="flow-body">
+                            <strong>Floorplan</strong>
+                            <span>Die: 16.5×16.5 µm — Core: 10.5×10.5 µm (3µm margins)</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">3</div>
+                        <div class="flow-body">
+                            <strong>Tapcells</strong>
+                            <span>Insert substrate/well contacts for latch-up prevention</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">4</div>
+                        <div class="flow-body">
+                            <strong>Pin Placement</strong>
+                            <span>I/O pins on metal2 (vertical) and metal3 (horizontal)</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">5</div>
+                        <div class="flow-body">
+                            <strong>Placement</strong>
+                            <span>Global placement (density 0.6) → detailed legalization into rows</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">6</div>
+                        <div class="flow-body">
+                            <strong>Clock Tree Synthesis</strong>
+                            <span>Balanced clock distribution using BUF_X4 buffers (3 buffers, depth 2)</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">7</div>
+                        <div class="flow-body">
+                            <strong>Routing</strong>
+                            <span>Global route → detailed route (284 µm total wire, 274 vias)</span>
+                        </div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-num">8</div>
+                        <div class="flow-body">
+                            <strong>Reports &amp; Output</strong>
+                            <span>Timing, area, power analysis → write t_final.def</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">🖥️ Terminal</span></div>
+                <pre><code>$ openroad openroad_run.tcl</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="section alt" id="results">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">05</span>
+                <div>
+                    <h2>Final Results</h2>
+                    <p class="step-desc">Timing met, zero DRC violations, 85% utilization</p>
+                </div>
+            </div>
+
+            <div class="results-grid">
+                <div class="result-card success">
+                    <div class="result-icon">✅</div>
+                    <div class="result-val">7.79 ns</div>
+                    <div class="result-label">Setup Slack (MET)</div>
+                </div>
+                <div class="result-card success">
+                    <div class="result-icon">✅</div>
+                    <div class="result-val">0.11 ns</div>
+                    <div class="result-label">Hold Slack (MET)</div>
+                </div>
+                <div class="result-card accent">
+                    <div class="result-icon">📐</div>
+                    <div class="result-val">74 µm²</div>
+                    <div class="result-label">Design Area</div>
+                </div>
+                <div class="result-card accent">
+                    <div class="result-icon">📊</div>
+                    <div class="result-val">85%</div>
+                    <div class="result-label">Utilization</div>
+                </div>
+                <div class="result-card success">
+                    <div class="result-icon">🛡️</div>
+                    <div class="result-val">0</div>
+                    <div class="result-label">DRC Violations</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-icon">⚡</div>
+                    <div class="result-val">15.2 µW</div>
+                    <div class="result-label">Total Power</div>
+                </div>
+            </div>
+
+            <!-- Power breakdown -->
+            <div class="card">
+                <h3>Power Breakdown</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Group</th>
+                                <th>Internal</th>
+                                <th>Switching</th>
+                                <th>Leakage</th>
+                                <th>Total</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Sequential</td>
+                                <td>5.29 µW</td>
+                                <td>0.16 µW</td>
+                                <td>0.62 µW</td>
+                                <td>6.06 µW</td>
+                                <td>39.9%</td>
+                            </tr>
+                            <tr>
+                                <td>Combinational</td>
+                                <td>0.56 µW</td>
+                                <td>0.51 µW</td>
+                                <td>0.84 µW</td>
+                                <td>1.91 µW</td>
+                                <td>12.6%</td>
+                            </tr>
+                            <tr>
+                                <td>Clock</td>
+                                <td>5.00 µW</td>
+                                <td>1.95 µW</td>
+                                <td>0.26 µW</td>
+                                <td>7.21 µW</td>
+                                <td>47.5%</td>
+                            </tr>
+                            <tr class="total">
+                                <td><strong>Total</strong></td>
+                                <td><strong>10.8 µW</strong></td>
+                                <td><strong>2.62 µW</strong></td>
+                                <td><strong>1.71 µW</strong></td>
+                                <td><strong>15.2 µW</strong></td>
+                                <td><strong>100%</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Timing paths -->
+            <div class="card">
+                <h3>Critical Timing Paths</h3>
+                <div class="timing-path">
+                    <div class="tp-header">
+                        <span class="tp-type max">MAX (Setup)</span>
+                        <span class="tp-slack met">Slack: 7.79 ns ✅</span>
+                    </div>
+                    <pre><code>_78_/CK (DFF_X1) → _78_/Q → _43_/ZN (INV_X1) → _58_/ZN (NAND2_X1) → _60_/ZN (NOR3_X1) → hwy[1]
+<span class="cm">Total delay: 0.21 ns  |  Required: 8.00 ns</span></code></pre>
+                </div>
+                <div class="timing-path">
+                    <div class="tp-header">
+                        <span class="tp-type min">MIN (Hold)</span>
+                        <span class="tp-slack met">Slack: 0.11 ns ✅</span>
+                    </div>
+                    <pre><code>_75_/CK (DFF_X1) → _75_/Q → _44_/ZN (INV_X1) → _57_/ZN (OAI22_X1) → _78_/D (DFF_X1)
+<span class="cm">Total delay: 0.15 ns  |  Required: 0.04 ns</span></code></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMPLETE FILE MAP -->
+    <section class="section" id="files">
+        <div class="container">
+            <h2>📁 Complete File Map</h2>
+            <div class="card">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Origin</th>
+                                <th>Stage</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>t.v</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Design</td>
+                                <td>Synthesizable RTL</td>
+                            </tr>
+                            <tr>
+                                <td><code>t_tb.v</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Simulate</td>
+                                <td>Testbench</td>
+                            </tr>
+                            <tr>
+                                <td><code>yosys_run.tcl</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Synthesize</td>
+                                <td>Yosys synthesis script</td>
+                            </tr>
+                            <tr>
+                                <td><code>t.sdc</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>PDA</td>
+                                <td>Timing constraints</td>
+                            </tr>
+                            <tr>
+                                <td><code>openroad_run.tcl</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>PDA</td>
+                                <td>OpenROAD PDA script</td>
+                            </tr>
+                            <tr>
+                                <td><code>t_sim</code></td>
+                                <td><span class="badge gen">🤖 iverilog</span></td>
+                                <td>Simulate</td>
+                                <td>Compiled binary</td>
+                            </tr>
+                            <tr>
+                                <td><code>t_synth.v</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Synthesize</td>
+                                <td>Gate-level netlist</td>
+                            </tr>
+                            <tr>
+                                <td><code>area_report.txt</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Synthesize</td>
+                                <td>Cell &amp; area stats</td>
+                            </tr>
+                            <tr>
+                                <td><code>t_synth.dot</code></td>
+                                <td><span class="badge gen">🤖 Yosys</span></td>
+                                <td>Synthesize</td>
+                                <td>Circuit schematic</td>
+                            </tr>
+                            <tr>
+                                <td><code>t_final.def</code></td>
+                                <td><span class="badge gen">🤖 OpenROAD</span></td>
+                                <td>PDA</td>
+                                <td>Final placed &amp; routed layout</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quick commands -->
+            <div class="card">
+                <h3>🚀 Quick Start — 3 Commands</h3>
+                <pre><code><span class="cm"># 1. Simulate</span>
+$ iverilog -o t_sim t.v t_tb.v && vvp t_sim
+
+<span class="cm"># 2. Synthesize</span>
+$ yosys -s yosys_run.tcl
+
+<span class="cm"># 3. Physical Design</span>
+$ openroad openroad_run.tcl</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-brand">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+            </div>
+            <p>Built with open-source EDA tools</p>
+            <div class="footer-links">
+                <a href="https://github.com/steveicarus/iverilog" target="_blank">Icarus Verilog</a>
+                <a href="https://github.com/YosysHQ/yosys" target="_blank">Yosys</a>
+                <a href="https://github.com/The-OpenROAD-Project/OpenROAD" target="_blank">OpenROAD</a>
+            </div>
+            <p class="copyright">© 2026 VyomansLab. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Animate traffic lights
+        const states = [
+            { hwy: 'green', cntry: 'red', hL: 'GREEN', cL: 'RED', st: 'S0', dur: 3000 },
+            { hwy: 'yellow', cntry: 'red', hL: 'YELLOW', cL: 'RED', st: 'S1', dur: 2000 },
+            { hwy: 'red', cntry: 'red', hL: 'RED', cL: 'RED', st: 'S2', dur: 1500 },
+            { hwy: 'red', cntry: 'green', hL: 'RED', cL: 'GREEN', st: 'S3', dur: 3000 },
+            { hwy: 'red', cntry: 'yellow', hL: 'RED', cL: 'YELLOW', st: 'S4', dur: 2000 },
+        ];
+        let si = 0;
+        function setLights(s) {
+            ['red', 'yellow', 'green'].forEach(c => {
+                document.getElementById('h' + c[0]).classList.toggle('on', c === s.hwy);
+                document.getElementById('c' + c[0]).classList.toggle('on', c === s.cntry);
+            });
+            document.getElementById('hLabel').textContent = s.hL;
+            document.getElementById('cLabel').textContent = s.cL;
+            document.getElementById('stateDisplay').textContent = s.st;
+        }
+        function cycle() { const s = states[si]; setLights(s); si = (si + 1) % states.length; setTimeout(cycle, s.dur); }
+        cycle();
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Nav scroll effect
+        const nav = document.querySelector('.nav');
+        window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 50); });
+
+        // Pipeline animation on scroll
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.2 });
+        document.querySelectorAll('.pipe-node,.card,.flow-step,.result-card').forEach(el => observer.observe(el));
+    </script>
+</body>
+
+</html>

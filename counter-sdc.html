@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Up/Down Counter with SDC — VyomansLab</title>
+    <meta name="description"
+        content="4-bit up/down counter with comprehensive SDC timing constraints. Explores clock definition, input/output delays, and load specifications.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="index.html" class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="#design">Design</a>
+                <a href="#simulation">Simulate</a>
+                <a href="#sdc">SDC</a>
+                <a href="install.html">Install</a>
+            </div>
+            <a href="https://github.com/vyomanslab" class="gh-btn" target="_blank">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+                GitHub
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <header class="hero" id="overview">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <div class="hero-badge">📘 Project · learning_2</div>
+            <h1>Counter with Timing Constraints</h1>
+            <p class="hero-sub">A 4-bit up/down counter with comprehensive SDC timing constraints — exploring clock
+                uncertainty, input/output delays, transition times, and load specifications.</p>
+            <div class="hero-tags">
+                <span class="htag">Verilog</span>
+                <span class="htag iv">Icarus Verilog</span>
+                <span class="htag">SDC</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- PIPELINE -->
+    <section class="pipeline-section">
+        <div class="container">
+            <div class="pipeline">
+                <div class="pipe-node active">
+                    <div class="pipe-icon">📝</div>
+                    <div class="pipe-label">RTL</div>
+                    <div class="pipe-file">counter.v</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node">
+                    <div class="pipe-icon">🔬</div>
+                    <div class="pipe-label">Simulate</div>
+                    <div class="pipe-file">iverilog</div>
+                </div>
+                <div class="pipe-line"></div>
+                <div class="pipe-node final">
+                    <div class="pipe-icon">📋</div>
+                    <div class="pipe-label">SDC</div>
+                    <div class="pipe-file">counter.sdc</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 1: DESIGN -->
+    <section class="section alt" id="design">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">01</span>
+                <div>
+                    <h2>Design Entry — counter.v</h2>
+                    <p class="step-desc">A 4-bit bidirectional counter with active-low reset</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">📄 counter.v</span><span
+                        class="lang-badge">Verilog</span></div>
+                <pre><code><span class="kw">module</span> <span class="fn">up_down_counter</span> (
+    <span class="kw">input  wire</span> clk,
+    <span class="kw">input  wire</span> reset_n,     <span class="cm">// Active-low reset</span>
+    <span class="kw">input  wire</span> up_down,     <span class="cm">// 1=count up, 0=count down</span>
+    <span class="kw">output reg</span>  [<span class="num">3</span>:<span class="num">0</span>] count
+);
+
+<span class="kw">always</span> @(<span class="kw">posedge</span> clk) <span class="kw">begin</span>
+    <span class="kw">if</span> (!reset_n)
+        count &lt;= <span class="num">4'b0000</span>;
+    <span class="kw">else if</span> (up_down)
+        count &lt;= count + <span class="num">1</span>;
+    <span class="kw">else</span>
+        count &lt;= count - <span class="num">1</span>;
+<span class="kw">end</span>
+
+<span class="kw">endmodule</span></code></pre>
+            </div>
+
+            <div class="callout info">
+                <div class="callout-icon">💡</div>
+                <div class="callout-text"><strong>What's different?</strong> Unlike the basic Mycounter, this design
+                    adds a <code>up_down</code> direction control and uses <strong>active-low reset</strong>
+                    (<code>reset_n</code>). These are more realistic patterns used in industry designs.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 2: SIMULATION -->
+    <section class="section" id="simulation">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">02</span>
+                <div>
+                    <h2>Simulation — Verify Counting Behavior</h2>
+                    <p class="step-desc">Test both up-counting and down-counting modes</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">📄 testbench.v</span><span
+                        class="lang-badge">Verilog</span></div>
+                <pre><code><span class="kw">module</span> <span class="fn">tb_up_down_counter</span>;
+    <span class="kw">reg</span> clk, reset_n, up_down;
+    <span class="kw">wire</span> [<span class="num">3</span>:<span class="num">0</span>] count;
+
+    up_down_counter dut (.*);
+
+    <span class="kw">always</span> #<span class="num">5</span> clk = ~clk;  <span class="cm">// 100 MHz clock</span>
+
+    <span class="kw">initial begin</span>
+        $dumpfile(<span class="str">"counter.vcd"</span>);
+        $dumpvars(<span class="num">0</span>, tb_up_down_counter);
+
+        clk = <span class="num">0</span>; reset_n = <span class="num">0</span>; up_down = <span class="num">0</span>;
+        #<span class="num">20</span>; reset_n = <span class="num">1</span>;
+
+        <span class="cm">// Count UP for 100ns</span>
+        up_down = <span class="num">1</span>; #<span class="num">100</span>;
+        <span class="cm">// Count DOWN for 100ns</span>
+        up_down = <span class="num">0</span>; #<span class="num">100</span>;
+        <span class="cm">// Toggle direction</span>
+        up_down = <span class="num">1</span>; #<span class="num">50</span>;
+        up_down = <span class="num">0</span>; #<span class="num">50</span>;
+        $finish;
+    <span class="kw">end</span>
+
+    <span class="kw">initial</span> $monitor(<span class="str">"Time=%0t | reset_n=%b | up_down=%b | count=%d"</span>,
+                      $time, reset_n, up_down, count);
+<span class="kw">endmodule</span></code></pre>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="file-badge">🖥️ Terminal</span></div>
+                <pre><code><span class="cm"># Compile + Run</span>
+$ iverilog -o counter counter.v testbench.v
+$ vvp counter
+
+<span class="cm"># View waveforms</span>
+$ gtkwave counter.vcd</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- STEP 3: SDC -->
+    <section class="section alt" id="sdc">
+        <div class="container">
+            <div class="step-header">
+                <span class="step-num">03</span>
+                <div>
+                    <h2>Timing Constraints — counter.sdc</h2>
+                    <p class="step-desc">Learning comprehensive SDC constraints for synthesis-ready designs</p>
+                </div>
+            </div>
+
+            <div class="card highlight">
+                <div class="card-header"><span class="file-badge">📄 counter.sdc</span><span
+                        class="lang-badge">SDC</span></div>
+                <pre><code><span class="cm"># 1. Create primary clock (100 MHz)</span>
+<span class="fn">create_clock</span> -name clk -period <span class="num">10.0</span> [get_ports clk]
+
+<span class="cm"># 2. Set clock uncertainty (jitter + skew margin)</span>
+<span class="fn">set_clock_uncertainty</span> <span class="num">0.2</span> [get_clocks clk]
+
+<span class="cm"># 3. Input delays (relative to clock)</span>
+<span class="fn">set_input_delay</span> <span class="num">2.0</span> -clock clk [get_ports {reset_n up_down}]
+
+<span class="cm"># 4. Output delays (relative to clock)</span>
+<span class="fn">set_output_delay</span> <span class="num">2.0</span> -clock clk [get_ports count]
+
+<span class="cm"># 5. Input transition time</span>
+<span class="fn">set_input_transition</span> <span class="num">0.1</span> [get_ports {clk reset_n up_down}]
+
+<span class="cm"># 6. Output load (in pF)</span>
+<span class="fn">set_load</span> <span class="num">0.1</span> [get_ports count]</code></pre>
+            </div>
+
+            <div class="card">
+                <h3>SDC Constraint Breakdown</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Constraint</th>
+                                <th>Value</th>
+                                <th>What It Does</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>create_clock</code></td>
+                                <td>10 ns period</td>
+                                <td>Defines a 100 MHz clock on the <code>clk</code> port</td>
+                            </tr>
+                            <tr>
+                                <td><code>set_clock_uncertainty</code></td>
+                                <td>0.2 ns</td>
+                                <td>Accounts for jitter and skew — adds margin to timing analysis</td>
+                            </tr>
+                            <tr>
+                                <td><code>set_input_delay</code></td>
+                                <td>2.0 ns</td>
+                                <td>Tells tools: inputs arrive 2ns after the clock edge</td>
+                            </tr>
+                            <tr>
+                                <td><code>set_output_delay</code></td>
+                                <td>2.0 ns</td>
+                                <td>Tells tools: outputs must be ready 2ns before the next clock edge</td>
+                            </tr>
+                            <tr>
+                                <td><code>set_input_transition</code></td>
+                                <td>0.1 ns</td>
+                                <td>Specifies how fast input signals switch (rise/fall time)</td>
+                            </tr>
+                            <tr>
+                                <td><code>set_load</code></td>
+                                <td>0.1 pF</td>
+                                <td>Models the capacitive load seen by output pins</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="callout info">
+                <div class="callout-icon">📚</div>
+                <div class="callout-text"><strong>Why does this matter?</strong> Without SDC constraints, synthesis and
+                    PDA tools have no timing target. The clock period defines how fast logic must be, and the
+                    input/output delays define the interface timing budget. These constraints are required for any real
+                    chip design.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FILE MAP -->
+    <section class="section" id="files">
+        <div class="container">
+            <h2>📁 Complete File Map</h2>
+            <div class="card">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Origin</th>
+                                <th>Stage</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>counter.v</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Design</td>
+                                <td>Up/down counter RTL</td>
+                            </tr>
+                            <tr>
+                                <td><code>testbench.v</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Simulate</td>
+                                <td>Testbench with direction toggle</td>
+                            </tr>
+                            <tr>
+                                <td><code>counter.sdc</code></td>
+                                <td><span class="badge written">✍️ Written</span></td>
+                                <td>Constraints</td>
+                                <td>Comprehensive timing constraints</td>
+                            </tr>
+                            <tr>
+                                <td><code>counter.vcd</code></td>
+                                <td><span class="badge gen">🤖 iverilog</span></td>
+                                <td>Simulate</td>
+                                <td>Waveform dump</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Commands Cheat Sheet</h3>
+                <pre><code><span class="cm"># 1. Simulate</span>
+$ iverilog -o counter counter.v testbench.v && vvp counter
+
+<span class="cm"># 2. View waveforms</span>
+$ gtkwave counter.vcd</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-brand"><span class="logo-icon">⚡</span><span class="logo-text">Vyomans<span
+                        class="accent">Lab</span></span></div>
+            <p>Open-source VLSI design exploration</p>
+            <div class="footer-links">
+                <a href="https://github.com/steveicarus/iverilog" target="_blank">Icarus Verilog</a>
+                <a href="https://github.com/YosysHQ/yosys" target="_blank">Yosys</a>
+                <a href="https://github.com/The-OpenROAD-Project/OpenROAD" target="_blank">OpenROAD</a>
+            </div>
+            <p class="copyright">© 2026 VyomansLab. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const nav = document.querySelector('.nav');
+        window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.card, .pipe-node, .flow-step').forEach(el => obs.observe(el));
+    </script>
+</body>
+
+</html>

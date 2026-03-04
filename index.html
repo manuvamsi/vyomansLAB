@@ -315,6 +315,7 @@
                 <span class="logo-icon">⚡</span>
                 <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
             </a>
+            <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
             <div class="nav-links">
                 <a href="#projects">Projects</a>
                 <a href="#tools">Tools</a>
@@ -559,6 +560,21 @@
             el.style.cssText = 'opacity:0;transform:translateY(20px);transition:all 0.5s';
             obs.observe(el);
         });
+    // Hamburger toggle
+        const hamburgerBtn = document.querySelector(".hamburger");
+        const navLinks = document.querySelector(".nav-links");
+        if (hamburgerBtn) {
+            hamburgerBtn.addEventListener("click", () => {
+                hamburgerBtn.classList.toggle("active");
+                navLinks.classList.toggle("open");
+            });
+            navLinks.querySelectorAll("a").forEach(link => {
+                link.addEventListener("click", () => {
+                    hamburgerBtn.classList.remove("active");
+                    navLinks.classList.remove("open");
+                });
+            });
+        }
     </script>
 </body>
 

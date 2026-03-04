@@ -308,273 +308,877 @@
 
 <body>
 
-    <!-- NAV -->
-    <nav class="nav">
-        <div class="nav-inner">
-            <a href="index.html" class="logo">
-                <span class="logo-icon">⚡</span>
-                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
-            </a>
-            <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
-            <div class="nav-links">
-                <a href="#projects">Projects</a>
-                <a href="#tools">Tools</a>
-                <a href="rtl-to-pda.html">Flow</a>
-                <a href="install.html">Install</a>
+    <!-- ====== LOADING SCREEN ====== -->
+    <div id="loadingScreen">
+        <style>
+            #loadingScreen {
+                position: fixed;
+                inset: 0;
+                z-index: 9999;
+                background: #050810;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                transition: opacity 0.8s ease, visibility 0.8s ease;
+            }
+
+            #loadingScreen.hidden {
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+            }
+
+            .loader-scene {
+                position: relative;
+                width: 280px;
+                height: 300px;
+            }
+
+            /* Scientist SVG */
+            .scientist {
+                position: absolute;
+                bottom: 0;
+                left: 20px;
+            }
+
+            /* Bulb */
+            .bulb-group {
+                position: absolute;
+                top: 55px;
+                right: 10px;
+            }
+
+            .bulb-glass {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: rgba(234, 179, 8, 0.08);
+                border: 2px solid rgba(234, 179, 8, 0.3);
+                transition: all 0.3s;
+                position: relative;
+            }
+
+            .bulb-base {
+                width: 20px;
+                height: 12px;
+                margin: -2px auto 0 15px;
+                background: #64748b;
+                border-radius: 0 0 4px 4px;
+                border: 1px solid #94a3b8;
+                border-top: none;
+            }
+
+            .bulb-filament {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: rgba(234, 179, 8, 0.1);
+                transition: all 0.3s;
+            }
+
+            .bulb-glow {
+                position: absolute;
+                top: 42%;
+                left: 28%;
+                transform: translate(-50%, -50%);
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(234, 179, 8, 0) 0%, rgba(234, 179, 8, 0) 100%);
+                transition: all 0.3s;
+                pointer-events: none;
+            }
+
+            /* Blast rings */
+            .blast-ring {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 0;
+                height: 0;
+                border-radius: 50%;
+                border: 2px solid rgba(234, 179, 8, 0);
+                pointer-events: none;
+                opacity: 0;
+            }
+
+            /* Loading text */
+            .loader-percent {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: #f1f5f9;
+                margin-top: 24px;
+                letter-spacing: -1px;
+            }
+
+            .loader-label {
+                font-family: 'Inter', sans-serif;
+                font-size: 0.8rem;
+                color: #64748b;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                margin-top: 8px;
+            }
+
+            .loader-bar-wrap {
+                width: 160px;
+                height: 3px;
+                background: #1e293b;
+                border-radius: 3px;
+                margin-top: 16px;
+                overflow: hidden;
+            }
+
+            .loader-bar {
+                height: 100%;
+                width: 0%;
+                background: linear-gradient(90deg, #6366f1, #eab308);
+                border-radius: 3px;
+                transition: width 0.1s;
+            }
+
+            /* Particles */
+            .load-particle {
+                position: absolute;
+                width: 3px;
+                height: 3px;
+                background: #eab308;
+                border-radius: 50%;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            /* Page content hidden initially */
+            .page-content {
+                opacity: 0;
+                transition: opacity 0.6s ease 0.2s;
+            }
+
+            .page-content.show {
+                opacity: 1;
+            }
+        </style>
+
+        <div class="loader-scene">
+            <!-- Scientist SVG with white coat, holding bulb -->
+            <svg class="scientist" width="180" height="220" viewBox="0 0 180 220" fill="none"
+                style="position:relative;left:50%;transform:translateX(-50%);">
+                <!-- White lab coat body -->
+                <path d="M55 105 L48 210 L132 210 L125 105 Z" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" />
+                <!-- Coat lapels -->
+                <path d="M65 105 L90 118 L115 105" fill="none" stroke="#94a3b8" stroke-width="1.5" />
+                <!-- Inner shirt/tie -->
+                <line x1="90" y1="118" x2="90" y2="155" stroke="#6366f1" stroke-width="2" />
+                <!-- Buttons -->
+                <circle cx="90" cy="135" r="2" fill="#94a3b8" />
+                <circle cx="90" cy="150" r="2" fill="#94a3b8" />
+                <circle cx="90" cy="165" r="2" fill="#94a3b8" />
+                <!-- Pocket -->
+                <rect x="100" y="140" width="14" height="16" rx="2" fill="none" stroke="#94a3b8" stroke-width="1" />
+                <!-- Pen in pocket -->
+                <line x1="105" y1="143" x2="105" y2="136" stroke="#6366f1" stroke-width="2" stroke-linecap="round" />
+                <!-- Head -->
+                <circle cx="90" cy="80" r="24" fill="#d4a97a" />
+                <!-- Shocked spiky hair -->
+                <line x1="72" y1="60" x2="64" y2="35" stroke="#1e293b" stroke-width="3" stroke-linecap="round" />
+                <line x1="78" y1="57" x2="73" y2="28" stroke="#1e293b" stroke-width="3" stroke-linecap="round" />
+                <line x1="85" y1="56" x2="84" y2="24" stroke="#1e293b" stroke-width="3" stroke-linecap="round" />
+                <line x1="92" y1="56" x2="94" y2="25" stroke="#1e293b" stroke-width="3" stroke-linecap="round" />
+                <line x1="99" y1="57" x2="103" y2="30" stroke="#1e293b" stroke-width="3" stroke-linecap="round" />
+                <line x1="105" y1="60" x2="114" y2="37" stroke="#1e293b" stroke-width="3" stroke-linecap="round" />
+                <!-- Lightning bolts near hair -->
+                <path d="M66 42 L69 37 L65 37 L68 32" fill="none" stroke="#eab308" stroke-width="1.5"
+                    stroke-linecap="round" />
+                <path d="M110 40 L113 35 L109 35 L112 30" fill="none" stroke="#eab308" stroke-width="1.5"
+                    stroke-linecap="round" />
+                <!-- Glasses -->
+                <circle cx="80" cy="78" r="8" fill="none" stroke="#cbd5e1" stroke-width="1.5" />
+                <circle cx="100" cy="78" r="8" fill="none" stroke="#cbd5e1" stroke-width="1.5" />
+                <line x1="88" y1="78" x2="92" y2="78" stroke="#cbd5e1" stroke-width="1.5" />
+                <!-- Surprised eyes -->
+                <circle cx="80" cy="77" r="3.5" fill="#1e293b" />
+                <circle cx="100" cy="77" r="3.5" fill="#1e293b" />
+                <circle cx="81" cy="76" r="1.2" fill="#fff" />
+                <circle cx="101" cy="76" r="1.2" fill="#fff" />
+                <!-- Open mouth -->
+                <ellipse cx="90" cy="92" rx="5" ry="3.5" fill="#8b6046" />
+                <!-- Left arm reaching down-forward to hold bulb -->
+                <path d="M65 110 Q50 125 55 150 Q58 158 65 155" fill="none" stroke="#d4a97a" stroke-width="7"
+                    stroke-linecap="round" />
+                <!-- Right arm reaching down-forward to hold bulb -->
+                <path d="M115 110 Q130 125 125 150 Q122 158 115 155" fill="none" stroke="#d4a97a" stroke-width="7"
+                    stroke-linecap="round" />
+                <!-- Hands cupping (small arcs at end of arms) -->
+                <path d="M62 153 Q65 162 72 160" fill="none" stroke="#d4a97a" stroke-width="5" stroke-linecap="round" />
+                <path d="M118 153 Q115 162 108 160" fill="none" stroke="#d4a97a" stroke-width="5"
+                    stroke-linecap="round" />
+                <!-- Shoes -->
+                <ellipse cx="72" cy="212" rx="14" ry="5" fill="#334155" />
+                <ellipse cx="108" cy="212" rx="14" ry="5" fill="#334155" />
+            </svg>
+
+            <!-- Bulb held by scientist's hands -->
+            <div class="bulb-group" style="position:absolute;top:110px;left:60%;transform:translateX(-50%);">
+                <div class="bulb-glow" id="bulbGlow"></div>
+                <div class="bulb-glass" id="bulbGlass">
+                    <div class="bulb-filament" id="bulbFilament"></div>
+                </div>
+                <div class="bulb-base"></div>
+                <!-- Blast rings -->
+                <div class="blast-ring" id="ring1"></div>
+                <div class="blast-ring" id="ring2"></div>
+                <div class="blast-ring" id="ring3"></div>
             </div>
-            <a href="https://github.com/manuvamsi/vyomanslab-codes" class="gh-btn" target="_blank">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path
-                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                </svg>
-                GitHub
-            </a>
         </div>
-    </nav>
 
-    <!-- HERO -->
-    <section class="home-hero">
-        <div class="hero-bg"></div>
-        <h1>VyomansLab</h1>
-        <p class="tagline">Exploring VLSI design from RTL to silicon using 100% open-source EDA tools. Each project
-            walks through simulation, synthesis, and physical design.</p>
-        <div class="stat-row">
-            <div class="home-stat">
-                <div class="val">5</div>
-                <div class="lbl">Projects</div>
-            </div>
-            <div class="home-stat">
-                <div class="val">3</div>
-                <div class="lbl">Full PDA Flows</div>
-            </div>
-            <div class="home-stat">
-                <div class="val">Nangate45</div>
-                <div class="lbl">Target PDK</div>
-            </div>
+        <div class="loader-label" id="loaderLabel"
+            style="font-size:0.85rem; color:#94a3b8; margin-top:24px; text-align:center; max-width:300px; line-height:1.5;">
+            Connecting to <span style="color:#818cf8; font-weight:700;">VyomansLab</span>...
         </div>
-    </section>
+        <div class="loader-label" id="loaderCaution"
+            style="font-size:0.72rem; color:#eab308; margin-top:10px; opacity:0; transition: opacity 0.5s;">
+            ⚠️ Caution: Try at your own risk
+        </div>
+    </div>
 
-    <!-- PROJECTS -->
-    <section class="projects-section" id="projects">
-        <div class="container">
-            <h2>📂 Projects</h2>
-            <p>Click a project to read the full walkthrough.</p>
+    <div class="page-content" id="pageContent">
 
-            <div class="project-grid">
-
-                <!-- Project 1: Traffic Light v2 (full blog) -->
-                <a href="traffic-light-rtl-to-pda.html" class="project-card">
-                    <div class="pc-header">
-                        <span class="pc-icon">🚦</span>
-                        <span class="pc-status complete">Full PDA ✓</span>
-                    </div>
-                    <div class="pc-title">Traffic Light Controller v2</div>
-                    <div class="pc-desc">5-state FSM controlling highway &amp; country road intersection with
-                        counter-based delays. Full RTL → Synthesis → PDA flow.</div>
-                    <div class="pc-tags">
-                        <span class="pc-tag">Verilog</span>
-                        <span class="pc-tag">Yosys</span>
-                        <span class="pc-tag">OpenROAD</span>
-                        <span class="pc-tag">Nangate45</span>
-                    </div>
-                    <div class="pc-stats">
-                        <span class="pc-stat-item"><strong>42</strong> cells</span>
-                        <span class="pc-stat-item"><strong>68.9</strong> µm²</span>
-                        <span class="pc-stat-item"><strong>85%</strong> util</span>
-                        <span class="pc-stat-item"><strong>0</strong> DRC</span>
-                    </div>
-                    <div class="pc-outputs">📦 <code>t_final.def</code> · <code>t_synth.v</code> ·
-                        <code>area_report.txt</code>
-                    </div>
-                    <span class="pc-arrow">→</span>
+        <!-- NAV -->
+        <nav class="nav">
+            <div class="nav-inner">
+                <a href="index.html" class="logo">
+                    <span class="logo-icon">⚡</span>
+                    <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
                 </a>
-
-                <a href="traffic-light-v1.html" class="project-card">
-                    <div class="pc-header">
-                        <span class="pc-icon">🚥</span>
-                        <span class="pc-status complete">Full Flow ✓</span>
-                    </div>
-                    <div class="pc-title">Traffic Light Controller v1</div>
-                    <div class="pc-desc">3-state traffic light FSM (RED → GREEN → YELLOW) with timer-based transitions.
-                        Includes simulation, coverage, synthesis, and OpenROAD PDA.</div>
-                    <div class="pc-tags">
-                        <span class="pc-tag">Verilog</span>
-                        <span class="pc-tag">Yosys</span>
-                        <span class="pc-tag">OpenROAD</span>
-                        <span class="pc-tag">Covered</span>
-                    </div>
-                    <div class="pc-stats">
-                        <span class="pc-stat-item"><strong>20</strong> cells</span>
-                        <span class="pc-stat-item"><strong>45.5</strong> µm²</span>
-                        <span class="pc-stat-item"><strong>58</strong> lines RTL</span>
-                    </div>
-                    <div class="pc-outputs">📦 <code>traffic_synth.v</code> · <code>traffic_synth.png</code> ·
-                        <code>traffic.vcd</code>
-                    </div>
-                    <span class="pc-arrow">→</span>
+                <button class="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+                <div class="nav-links">
+                    <a href="#projects">Projects</a>
+                    <a href="#tools">Tools</a>
+                    <a href="rtl-to-pda.html">Flow</a>
+                    <a href="install.html">Install</a>
+                </div>
+                <a href="https://github.com/manuvamsi/vyomanslab-codes" class="gh-btn" target="_blank">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                    </svg>
+                    GitHub
                 </a>
-
-                <a href="counter-full-pda.html" class="project-card">
-                    <div class="pc-header">
-                        <span class="pc-icon">🔢</span>
-                        <span class="pc-status complete">Full Flow ✓</span>
-                    </div>
-                    <div class="pc-title">4-Bit Counter — Full PDA</div>
-                    <div class="pc-desc">Simple 4-bit synchronous counter taken through the complete VLSI flow:
-                        simulation → coverage → Yosys synthesis → OpenROAD floorplan, placement &amp; routing.</div>
-                    <div class="pc-tags">
-                        <span class="pc-tag">Verilog</span>
-                        <span class="pc-tag">Yosys</span>
-                        <span class="pc-tag">OpenROAD</span>
-                        <span class="pc-tag">Coverage</span>
-                    </div>
-                    <div class="pc-stats">
-                        <span class="pc-stat-item"><strong>14</strong> cells</span>
-                        <span class="pc-stat-item"><strong>27</strong> µm²</span>
-                        <span class="pc-stat-item"><strong>15</strong> lines RTL</span>
-                    </div>
-                    <div class="pc-outputs">📦 <code>Mycounter.def</code> · <code>Mycounter_synth.v</code> ·
-                        <code>Mycounter_synth.png</code>
-                    </div>
-                    <span class="pc-arrow">→</span>
-                </a>
-
-                <a href="counter-sdc.html" class="project-card">
-                    <div class="pc-header">
-                        <span class="pc-icon">⏱️</span>
-                        <span class="pc-status partial">Sim + SDC</span>
-                    </div>
-                    <div class="pc-title">Counter with Timing Constraints</div>
-                    <div class="pc-desc">Extended counter design with SDC timing constraints. Explores clock definition,
-                        input/output delay specifications for synthesis-ready designs.</div>
-                    <div class="pc-tags">
-                        <span class="pc-tag">Verilog</span>
-                        <span class="pc-tag">SDC</span>
-                        <span class="pc-tag">Constraints</span>
-                    </div>
-                    <div class="pc-stats">
-                        <span class="pc-stat-item"><strong>learning_2</strong></span>
-                        <span class="pc-stat-item"><strong>SDC</strong> constraints</span>
-                    </div>
-                    <div class="pc-outputs">📦 <code>counter.sdc</code> · <code>counter.vcd</code></div>
-                    <span class="pc-arrow">→</span>
-                </a>
-
-                <!-- Project 5: Icarus Counter (sim only) -->
-                <div class="project-card">
-                    <div class="pc-header">
-                        <span class="pc-icon">🧪</span>
-                        <span class="pc-status sim-only">Simulation</span>
-                    </div>
-                    <div class="pc-title">4-Bit Counter — Simulation</div>
-                    <div class="pc-desc">First-principles counter design focusing on Icarus Verilog simulation and code
-                        coverage analysis with Covered. The starting point for learning Verilog.</div>
-                    <div class="pc-tags">
-                        <span class="pc-tag">Verilog</span>
-                        <span class="pc-tag">Icarus Verilog</span>
-                        <span class="pc-tag">Covered</span>
-                        <span class="pc-tag">GTKWave</span>
-                    </div>
-                    <div class="pc-stats">
-                        <span class="pc-stat-item"><strong>icarus_codes</strong></span>
-                        <span class="pc-stat-item"><strong>VCD</strong> waveform</span>
-                    </div>
-                    <div class="pc-outputs">📦 <code>count.vcd</code> · <code>Mycounter.cdd</code></div>
-                </div>
-
             </div>
-        </div>
-    </section>
+        </nav>
 
-    <!-- TOOLCHAIN -->
-    <section class="tools-section" id="tools">
-        <div class="container">
-            <h2 style="font-size:1.5rem; font-weight:800; color:#f1f5f9;">🔧 Toolchain</h2>
-            <p style="color:#94a3b8; font-size:0.9rem;">All projects use these open-source tools:</p>
-            <div class="tools-grid">
-                <div class="tool-card">
-                    <div class="tool-icon">📝</div>
-                    <div class="tool-name">Icarus Verilog</div>
-                    <div class="tool-role">RTL Simulation</div>
+        <!-- HERO -->
+        <section class="home-hero" style="position:relative;">
+            <div class="hero-bg" style="z-index:0;"></div>
+            <canvas id="circuitCanvas"
+                style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;"></canvas>
+            <h1 style="position:relative;z-index:2;">VyomansLab</h1>
+            <p class="tagline" style="position:relative;z-index:2;">Exploring VLSI design from RTL to silicon using 100%
+                open-source EDA tools. Each project
+                walks through simulation, synthesis, and physical design.</p>
+            <div class="stat-row" style="position:relative;z-index:2;">
+                <div class="home-stat">
+                    <div class="val">5</div>
+                    <div class="lbl">Projects</div>
                 </div>
-                <div class="tool-card">
-                    <div class="tool-icon">📊</div>
-                    <div class="tool-name">GTKWave</div>
-                    <div class="tool-role">Waveform Viewer</div>
+                <div class="home-stat">
+                    <div class="val">3</div>
+                    <div class="lbl">Full PDA Flows</div>
                 </div>
-                <div class="tool-card">
-                    <div class="tool-icon">🔍</div>
-                    <div class="tool-name">Covered</div>
-                    <div class="tool-role">Code Coverage</div>
-                </div>
-                <div class="tool-card">
-                    <div class="tool-icon">⚙️</div>
-                    <div class="tool-name">Yosys</div>
-                    <div class="tool-role">Logic Synthesis</div>
-                </div>
-                <div class="tool-card">
-                    <div class="tool-icon">🏗️</div>
-                    <div class="tool-name">OpenROAD</div>
-                    <div class="tool-role">Physical Design</div>
-                </div>
-                <div class="tool-card">
-                    <div class="tool-icon">🔬</div>
-                    <div class="tool-name">Nangate45 PDK</div>
-                    <div class="tool-role">Standard Cell Library</div>
+                <div class="home-stat">
+                    <div class="val">Nangate45</div>
+                    <div class="lbl">Target PDK</div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- FOOTER -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-brand">
-                <span class="logo-icon">⚡</span>
-                <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+        <!-- PROJECTS -->
+        <section class="projects-section" id="projects">
+            <div class="container">
+                <h2>📂 Projects</h2>
+                <p>Click a project to read the full walkthrough.</p>
+
+                <div class="project-grid">
+
+                    <!-- Project 1: Traffic Light v2 (full blog) -->
+                    <a href="traffic-light-rtl-to-pda.html" class="project-card">
+                        <div class="pc-header">
+                            <span class="pc-icon">🚦</span>
+                            <span class="pc-status complete">Full PDA ✓</span>
+                        </div>
+                        <div class="pc-title">Traffic Light Controller v2</div>
+                        <div class="pc-desc">5-state FSM controlling highway &amp; country road intersection with
+                            counter-based delays. Full RTL → Synthesis → PDA flow.</div>
+                        <div class="pc-tags">
+                            <span class="pc-tag">Verilog</span>
+                            <span class="pc-tag">Yosys</span>
+                            <span class="pc-tag">OpenROAD</span>
+                            <span class="pc-tag">Nangate45</span>
+                        </div>
+                        <div class="pc-stats">
+                            <span class="pc-stat-item"><strong>42</strong> cells</span>
+                            <span class="pc-stat-item"><strong>68.9</strong> µm²</span>
+                            <span class="pc-stat-item"><strong>85%</strong> util</span>
+                            <span class="pc-stat-item"><strong>0</strong> DRC</span>
+                        </div>
+                        <div class="pc-outputs">📦 <code>t_final.def</code> · <code>t_synth.v</code> ·
+                            <code>area_report.txt</code>
+                        </div>
+                        <span class="pc-arrow">→</span>
+                    </a>
+
+                    <a href="traffic-light-v1.html" class="project-card">
+                        <div class="pc-header">
+                            <span class="pc-icon">🚥</span>
+                            <span class="pc-status complete">Full Flow ✓</span>
+                        </div>
+                        <div class="pc-title">Traffic Light Controller v1</div>
+                        <div class="pc-desc">3-state traffic light FSM (RED → GREEN → YELLOW) with timer-based
+                            transitions.
+                            Includes simulation, coverage, synthesis, and OpenROAD PDA.</div>
+                        <div class="pc-tags">
+                            <span class="pc-tag">Verilog</span>
+                            <span class="pc-tag">Yosys</span>
+                            <span class="pc-tag">OpenROAD</span>
+                            <span class="pc-tag">Covered</span>
+                        </div>
+                        <div class="pc-stats">
+                            <span class="pc-stat-item"><strong>20</strong> cells</span>
+                            <span class="pc-stat-item"><strong>45.5</strong> µm²</span>
+                            <span class="pc-stat-item"><strong>58</strong> lines RTL</span>
+                        </div>
+                        <div class="pc-outputs">📦 <code>traffic_synth.v</code> · <code>traffic_synth.png</code> ·
+                            <code>traffic.vcd</code>
+                        </div>
+                        <span class="pc-arrow">→</span>
+                    </a>
+
+                    <a href="counter-full-pda.html" class="project-card">
+                        <div class="pc-header">
+                            <span class="pc-icon">🔢</span>
+                            <span class="pc-status complete">Full Flow ✓</span>
+                        </div>
+                        <div class="pc-title">4-Bit Counter — Full PDA</div>
+                        <div class="pc-desc">Simple 4-bit synchronous counter taken through the complete VLSI flow:
+                            simulation → coverage → Yosys synthesis → OpenROAD floorplan, placement &amp; routing.</div>
+                        <div class="pc-tags">
+                            <span class="pc-tag">Verilog</span>
+                            <span class="pc-tag">Yosys</span>
+                            <span class="pc-tag">OpenROAD</span>
+                            <span class="pc-tag">Coverage</span>
+                        </div>
+                        <div class="pc-stats">
+                            <span class="pc-stat-item"><strong>14</strong> cells</span>
+                            <span class="pc-stat-item"><strong>27</strong> µm²</span>
+                            <span class="pc-stat-item"><strong>15</strong> lines RTL</span>
+                        </div>
+                        <div class="pc-outputs">📦 <code>Mycounter.def</code> · <code>Mycounter_synth.v</code> ·
+                            <code>Mycounter_synth.png</code>
+                        </div>
+                        <span class="pc-arrow">→</span>
+                    </a>
+
+                    <a href="counter-sdc.html" class="project-card">
+                        <div class="pc-header">
+                            <span class="pc-icon">⏱️</span>
+                            <span class="pc-status partial">Sim + SDC</span>
+                        </div>
+                        <div class="pc-title">Counter with Timing Constraints</div>
+                        <div class="pc-desc">Extended counter design with SDC timing constraints. Explores clock
+                            definition,
+                            input/output delay specifications for synthesis-ready designs.</div>
+                        <div class="pc-tags">
+                            <span class="pc-tag">Verilog</span>
+                            <span class="pc-tag">SDC</span>
+                            <span class="pc-tag">Constraints</span>
+                        </div>
+                        <div class="pc-stats">
+                            <span class="pc-stat-item"><strong>learning_2</strong></span>
+                            <span class="pc-stat-item"><strong>SDC</strong> constraints</span>
+                        </div>
+                        <div class="pc-outputs">📦 <code>counter.sdc</code> · <code>counter.vcd</code></div>
+                        <span class="pc-arrow">→</span>
+                    </a>
+
+                    <!-- Project 5: Icarus Counter (sim only) -->
+                    <div class="project-card">
+                        <div class="pc-header">
+                            <span class="pc-icon">🧪</span>
+                            <span class="pc-status sim-only">Simulation</span>
+                        </div>
+                        <div class="pc-title">4-Bit Counter — Simulation</div>
+                        <div class="pc-desc">First-principles counter design focusing on Icarus Verilog simulation and
+                            code
+                            coverage analysis with Covered. The starting point for learning Verilog.</div>
+                        <div class="pc-tags">
+                            <span class="pc-tag">Verilog</span>
+                            <span class="pc-tag">Icarus Verilog</span>
+                            <span class="pc-tag">Covered</span>
+                            <span class="pc-tag">GTKWave</span>
+                        </div>
+                        <div class="pc-stats">
+                            <span class="pc-stat-item"><strong>icarus_codes</strong></span>
+                            <span class="pc-stat-item"><strong>VCD</strong> waveform</span>
+                        </div>
+                        <div class="pc-outputs">📦 <code>count.vcd</code> · <code>Mycounter.cdd</code></div>
+                    </div>
+
+                </div>
             </div>
-            <p>Open-source VLSI design exploration</p>
-            <div class="footer-links">
-                <a href="https://github.com/steveicarus/iverilog" target="_blank">Icarus Verilog</a>
-                <a href="https://github.com/YosysHQ/yosys" target="_blank">Yosys</a>
-                <a href="https://github.com/The-OpenROAD-Project/OpenROAD" target="_blank">OpenROAD</a>
+        </section>
+
+        <!-- TOOLCHAIN -->
+        <section class="tools-section" id="tools">
+            <div class="container">
+                <h2 style="font-size:1.5rem; font-weight:800; color:#f1f5f9;">🔧 Toolchain</h2>
+                <p style="color:#94a3b8; font-size:0.9rem;">All projects use these open-source tools:</p>
+                <div class="tools-grid">
+                    <div class="tool-card">
+                        <div class="tool-icon">📝</div>
+                        <div class="tool-name">Icarus Verilog</div>
+                        <div class="tool-role">RTL Simulation</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">📊</div>
+                        <div class="tool-name">GTKWave</div>
+                        <div class="tool-role">Waveform Viewer</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">🔍</div>
+                        <div class="tool-name">Covered</div>
+                        <div class="tool-role">Code Coverage</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">⚙️</div>
+                        <div class="tool-name">Yosys</div>
+                        <div class="tool-role">Logic Synthesis</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">🏗️</div>
+                        <div class="tool-name">OpenROAD</div>
+                        <div class="tool-role">Physical Design</div>
+                    </div>
+                    <div class="tool-card">
+                        <div class="tool-icon">🔬</div>
+                        <div class="tool-name">Nangate45 PDK</div>
+                        <div class="tool-role">Standard Cell Library</div>
+                    </div>
+                </div>
             </div>
-            <p class="copyright">© 2026 VyomansLab. All rights reserved.</p>
-        </div>
-    </footer>
+        </section>
 
-    <script>
-        // Nav scroll effect
-        const nav = document.querySelector('.nav');
-        window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-brand">
+                    <span class="logo-icon">⚡</span>
+                    <span class="logo-text">Vyomans<span class="accent">Lab</span></span>
+                </div>
+                <p>Open-source VLSI design exploration</p>
+                <div class="footer-links">
+                    <a href="https://github.com/steveicarus/iverilog" target="_blank">Icarus Verilog</a>
+                    <a href="https://github.com/YosysHQ/yosys" target="_blank">Yosys</a>
+                    <a href="https://github.com/The-OpenROAD-Project/OpenROAD" target="_blank">OpenROAD</a>
+                </div>
+                <p class="copyright">© 2026 VyomansLab. All rights reserved.</p>
+            </div>
+        </footer>
 
-        // Animate cards on scroll
-        const obs = new IntersectionObserver(entries => {
-            entries.forEach((e, i) => {
-                if (e.isIntersecting) {
-                    setTimeout(() => e.target.style.cssText = 'opacity:1;transform:translateY(0)', i * 80);
-                }
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.project-card, .tool-card').forEach(el => {
-            el.style.cssText = 'opacity:0;transform:translateY(20px);transition:all 0.5s';
-            obs.observe(el);
-        });
-    // Hamburger toggle
-        const hamburgerBtn = document.querySelector(".hamburger");
-        const navLinks = document.querySelector(".nav-links");
-        if (hamburgerBtn) {
-            hamburgerBtn.addEventListener("click", () => {
-                hamburgerBtn.classList.toggle("active");
-                navLinks.classList.toggle("open");
-            });
-            navLinks.querySelectorAll("a").forEach(link => {
-                link.addEventListener("click", () => {
-                    hamburgerBtn.classList.remove("active");
-                    navLinks.classList.remove("open");
+        <script>
+            // Nav scroll effect
+            const nav = document.querySelector('.nav');
+            window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 50));
+
+            // Animate cards on scroll
+            const obs = new IntersectionObserver(entries => {
+                entries.forEach((e, i) => {
+                    if (e.isIntersecting) {
+                        setTimeout(() => e.target.style.cssText = 'opacity:1;transform:translateY(0)', i * 80);
+                    }
                 });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.project-card, .tool-card').forEach(el => {
+                el.style.cssText = 'opacity:0;transform:translateY(20px);transition:all 0.5s';
+                obs.observe(el);
             });
-        }
+
+            // Hamburger toggle
+            const hamburgerBtn = document.querySelector(".hamburger");
+            const navLinks = document.querySelector(".nav-links");
+            if (hamburgerBtn) {
+                hamburgerBtn.addEventListener("click", () => {
+                    hamburgerBtn.classList.toggle("active");
+                    navLinks.classList.toggle("open");
+                });
+                navLinks.querySelectorAll("a").forEach(link => {
+                    link.addEventListener("click", () => {
+                        hamburgerBtn.classList.remove("active");
+                        navLinks.classList.remove("open");
+                    });
+                });
+            }
+
+            // ====== CIRCUIT BOARD ANIMATION ======
+            (function () {
+                const canvas = document.getElementById('circuitCanvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                let W, H;
+
+                function resize() {
+                    const rect = canvas.parentElement.getBoundingClientRect();
+                    W = canvas.width = rect.width * devicePixelRatio;
+                    H = canvas.height = rect.height * devicePixelRatio;
+                    ctx.scale(devicePixelRatio, devicePixelRatio);
+                }
+                resize();
+                window.addEventListener('resize', resize);
+
+                const gates = [];
+                const gateWires = [];
+                const gatePulses = [];
+                const particles = [];
+
+                function initCircuit() {
+                    gates.length = 0; gateWires.length = 0; gatePulses.length = 0; particles.length = 0;
+                    const rW = W / devicePixelRatio;
+                    const rH = H / devicePixelRatio;
+                    const gW = 44, gH = 26;
+
+                    // Place gates in a structured circuit layout (3 rows)
+                    const rows = [
+                        // Row 1 (top) — inputs feed into row 2
+                        {
+                            y: rH * 0.15, gates: [
+                                { x: rW * 0.08, type: 'AND' },
+                                { x: rW * 0.28, type: 'OR' },
+                                { x: rW * 0.50, type: 'NOT' },
+                                { x: rW * 0.70, type: 'AND' },
+                                { x: rW * 0.88, type: 'OR' },
+                            ]
+                        },
+                        // Row 2 (middle) — processing
+                        {
+                            y: rH * 0.48, gates: [
+                                { x: rW * 0.15, type: 'NOT' },
+                                { x: rW * 0.38, type: 'AND' },
+                                { x: rW * 0.60, type: 'OR' },
+                                { x: rW * 0.82, type: 'NOT' },
+                            ]
+                        },
+                        // Row 3 (bottom) — outputs
+                        {
+                            y: rH * 0.80, gates: [
+                                { x: rW * 0.10, type: 'OR' },
+                                { x: rW * 0.32, type: 'NOT' },
+                                { x: rW * 0.55, type: 'AND' },
+                                { x: rW * 0.78, type: 'OR' },
+                                { x: rW * 0.93, type: 'AND' },
+                            ]
+                        },
+                    ];
+
+                    rows.forEach(row => {
+                        row.gates.forEach(g => {
+                            gates.push({ x: g.x, y: row.y, w: gW, h: gH, type: g.type, pulse: Math.random() * 6.28, speed: 0.015 + Math.random() * 0.02 });
+                        });
+                    });
+
+                    // Wire connections: output of gate[i] → input of gate[j]
+                    // Row 1 → Row 2 connections
+                    const connections = [
+                        [0, 5], [1, 6], [2, 6], [3, 7], [4, 8],  // row1 → row2
+                        [0, 6], [3, 8],                            // cross connections
+                        [5, 9], [6, 10], [7, 11], [8, 12],        // row2 → row3
+                        [5, 10], [7, 12], [8, 13],                 // cross connections row2→row3
+                        // Horizontal within rows
+                        [0, 1], [1, 2], [2, 3], [3, 4],            // row 1
+                        [9, 10], [10, 11], [11, 12], [12, 13],     // row 3
+                    ];
+
+                    connections.forEach(([fi, ti]) => {
+                        if (fi < gates.length && ti < gates.length) {
+                            const from = gates[fi];
+                            const to = gates[ti];
+                            gateWires.push({
+                                x1: from.x + from.w, y1: from.y + from.h / 2,
+                                x2: to.x, y2: to.y + to.h / 2,
+                            });
+                        }
+                    });
+
+                    // Create signal pulses on the wires
+                    gateWires.forEach((w, i) => {
+                        gatePulses.push({
+                            wire: w,
+                            progress: Math.random(),
+                            speed: 0.003 + Math.random() * 0.005,
+                            color: ['#6366f1', '#22c55e', '#06b6d4', '#818cf8'][i % 4]
+                        });
+                    });
+
+                    // Floating binary particles
+                    for (let i = 0; i < 15; i++) {
+                        particles.push({
+                            x: Math.random() * rW,
+                            y: Math.random() * rH,
+                            vx: (Math.random() - 0.5) * 0.3,
+                            vy: -0.2 - Math.random() * 0.4,
+                            char: Math.random() > 0.5 ? '1' : '0',
+                            alpha: 0.08 + Math.random() * 0.15,
+                            size: 10 + Math.random() * 5
+                        });
+                    }
+                }
+                initCircuit();
+                window.addEventListener('resize', () => { resize(); initCircuit(); });
+
+                // Draw a logic gate shape
+                function drawGate(g) {
+                    const { x, y, w, h, type } = g;
+                    g.pulse += g.speed;
+                    const a = 0.4 + Math.sin(g.pulse) * 0.15;
+
+                    ctx.strokeStyle = `rgba(99, 102, 241, ${a * 0.7})`;
+                    ctx.lineWidth = 1.2;
+                    ctx.fillStyle = `rgba(15, 23, 42, ${a * 0.6})`;
+
+                    if (type === 'AND') {
+                        ctx.beginPath();
+                        ctx.moveTo(x, y); ctx.lineTo(x + w * 0.5, y);
+                        ctx.arc(x + w * 0.5, y + h / 2, h / 2, -Math.PI / 2, Math.PI / 2);
+                        ctx.lineTo(x, y + h); ctx.closePath();
+                        ctx.fill(); ctx.stroke();
+                    } else if (type === 'OR') {
+                        ctx.beginPath();
+                        ctx.moveTo(x, y);
+                        ctx.quadraticCurveTo(x + w * 0.7, y, x + w, y + h / 2);
+                        ctx.quadraticCurveTo(x + w * 0.7, y + h, x, y + h);
+                        ctx.quadraticCurveTo(x + w * 0.25, y + h / 2, x, y);
+                        ctx.fill(); ctx.stroke();
+                    } else {
+                        ctx.beginPath();
+                        ctx.moveTo(x, y); ctx.lineTo(x + w * 0.75, y + h / 2);
+                        ctx.lineTo(x, y + h); ctx.closePath();
+                        ctx.fill(); ctx.stroke();
+                        ctx.beginPath();
+                        ctx.arc(x + w * 0.75 + 4, y + h / 2, 4, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+
+                    // Label
+                    ctx.fillStyle = `rgba(148, 163, 184, ${a * 0.5})`;
+                    ctx.font = '7px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(type, x + w * 0.4, y + h / 2 + 3);
+
+                    // Input pins
+                    ctx.fillStyle = `rgba(99, 102, 241, ${a})`;
+                    ctx.beginPath(); ctx.arc(x - 2, y + h * 0.3, 1.5, 0, Math.PI * 2); ctx.fill();
+                    if (type !== 'NOT') {
+                        ctx.beginPath(); ctx.arc(x - 2, y + h * 0.7, 1.5, 0, Math.PI * 2); ctx.fill();
+                    }
+                    // Output pin
+                    ctx.fillStyle = `rgba(34, 197, 94, ${a})`;
+                    ctx.beginPath(); ctx.arc(x + w + 2, y + h / 2, 1.5, 0, Math.PI * 2); ctx.fill();
+                }
+
+                function draw() {
+                    const rW = W / devicePixelRatio;
+                    const rH = H / devicePixelRatio;
+                    ctx.clearRect(0, 0, rW, rH);
+
+                    // Draw wires between gates (elbow routed)
+                    gateWires.forEach(w => {
+                        const mx = (w.x1 + w.x2) / 2;
+                        ctx.beginPath();
+                        ctx.moveTo(w.x1, w.y1);
+                        ctx.lineTo(mx, w.y1);
+                        ctx.lineTo(mx, w.y2);
+                        ctx.lineTo(w.x2, w.y2);
+                        ctx.strokeStyle = 'rgba(30, 41, 59, 0.4)';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+
+                    // Draw signal pulses flowing through wires
+                    gatePulses.forEach(p => {
+                        p.progress += p.speed;
+                        if (p.progress > 1) p.progress = 0;
+
+                        const w = p.wire;
+                        const mx = (w.x1 + w.x2) / 2;
+                        let px, py;
+                        const t = p.progress;
+
+                        // 3-segment path: horizontal → vertical → horizontal
+                        if (t < 0.33) {
+                            const lt = t / 0.33;
+                            px = w.x1 + (mx - w.x1) * lt; py = w.y1;
+                        } else if (t < 0.66) {
+                            const lt = (t - 0.33) / 0.33;
+                            px = mx; py = w.y1 + (w.y2 - w.y1) * lt;
+                        } else {
+                            const lt = (t - 0.66) / 0.34;
+                            px = mx + (w.x2 - mx) * lt; py = w.y2;
+                        }
+
+                        // Glow
+                        const grad = ctx.createRadialGradient(px, py, 0, px, py, 12);
+                        grad.addColorStop(0, p.color + '70');
+                        grad.addColorStop(1, 'transparent');
+                        ctx.fillStyle = grad;
+                        ctx.beginPath(); ctx.arc(px, py, 12, 0, Math.PI * 2); ctx.fill();
+
+                        // Signal dot
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI * 2); ctx.fill();
+                    });
+
+                    // Draw gates
+                    gates.forEach(drawGate);
+
+                    // Draw floating binary
+                    particles.forEach(p => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        if (p.y < -20) { p.y = rH + 20; p.x = Math.random() * rW; }
+                        if (p.x < -20 || p.x > rW + 20) p.x = Math.random() * rW;
+                        ctx.fillStyle = `rgba(99, 102, 241, ${p.alpha})`;
+                        ctx.font = `600 ${p.size}px JetBrains Mono, monospace`;
+                        ctx.fillText(p.char, p.x, p.y);
+                    });
+
+                    // Waveform at bottom
+                    ctx.beginPath();
+                    const waveY = rH - 30;
+                    for (let x = 0; x < rW; x += 2) {
+                        const t = Date.now() * 0.001;
+                        const y = waveY + Math.sin(x * 0.03 + t * 2) * 6
+                            + Math.sin(x * 0.07 + t * 1.3) * 3;
+                        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                    }
+                    ctx.strokeStyle = 'rgba(34, 197, 94, 0.15)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    requestAnimationFrame(draw);
+                }
+                draw();
+            })();
+        </script>
+
+    </div><!-- /page-content -->
+
+    <!-- Loading Animation Script -->
+    <script>
+        (function () {
+            const screen = document.getElementById('loadingScreen');
+            const content = document.getElementById('pageContent');
+            const bulbGlass = document.getElementById('bulbGlass');
+            const bulbFilament = document.getElementById('bulbFilament');
+            const bulbGlow = document.getElementById('bulbGlow');
+            const ring1 = document.getElementById('ring1');
+            const ring2 = document.getElementById('ring2');
+            const ring3 = document.getElementById('ring3');
+            const labelEl = document.getElementById('loaderLabel');
+            const cautionEl = document.getElementById('loaderCaution');
+
+
+            // ====== BULB + LOADING LOGIC ======
+            const messages = [
+                'Connecting to <span style="color:#818cf8;font-weight:700">VyomansLab</span>...',
+                '🔌 Powering up the circuits...',
+                '🧪 Mixing electrons carefully...',
+                '⚡ Warming up the silicon...',
+                '🧠 Compiling neurons...',
+                '🔬 Calibrating the oscilloscope...',
+                '💡 Almost there...',
+                '🚀 Ready for launch!'
+            ];
+            let msgIndex = 0;
+            let progress = 0;
+
+            function updateBulb(pct) {
+                const t = pct / 100;
+                const fAlpha = 0.1 + t * 0.9;
+                bulbFilament.style.background = `rgba(234, 179, 8, ${fAlpha})`;
+                bulbFilament.style.boxShadow = `0 0 ${t * 20}px rgba(234, 179, 8, ${t * 0.6})`;
+                bulbGlass.style.borderColor = `rgba(234, 179, 8, ${0.3 + t * 0.7})`;
+                bulbGlass.style.background = `rgba(234, 179, 8, ${0.08 + t * 0.25})`;
+                const glowSize = 48 + t * 80;
+                bulbGlow.style.width = bulbGlow.style.height = glowSize + 'px';
+                bulbGlow.style.background = `radial-gradient(circle, rgba(234,179,8,${t * 0.4}) 0%, rgba(234,179,8,0) 70%)`;
+            }
+
+            function blast() {
+                screen.style.background = '#0a0e1a';
+                bulbGlass.style.background = 'rgba(234, 179, 8, 0.9)';
+                bulbGlass.style.boxShadow = '0 0 60px #eab308, 0 0 120px rgba(234,179,8,0.5)';
+                bulbFilament.style.background = '#fff';
+
+                [ring1, ring2, ring3].forEach((ring, i) => {
+                    setTimeout(() => {
+                        ring.style.transition = 'all 0.6s ease-out';
+                        ring.style.width = ring.style.height = (100 + i * 60) + 'px';
+                        ring.style.border = '2px solid rgba(234, 179, 8, 0.6)';
+                        ring.style.opacity = '1';
+                        setTimeout(() => {
+                            ring.style.width = ring.style.height = (250 + i * 80) + 'px';
+                            ring.style.opacity = '0';
+                        }, 200);
+                    }, i * 120);
+                });
+
+                bulbGlow.style.transition = 'all 0.5s ease-out';
+                bulbGlow.style.width = bulbGlow.style.height = '300px';
+                bulbGlow.style.background = 'radial-gradient(circle, rgba(234,179,8,0.6) 0%, rgba(234,179,8,0) 70%)';
+
+                setTimeout(() => { screen.style.background = 'rgba(234, 179, 8, 0.1)'; }, 300);
+                setTimeout(() => { screen.classList.add('hidden'); content.classList.add('show'); }, 800);
+                setTimeout(() => { screen.style.display = 'none'; }, 1600);
+            }
+
+            // Show caution after a moment
+            setTimeout(() => { cautionEl.style.opacity = '1'; }, 600);
+
+            // Rotate messages
+            const msgInterval = setInterval(() => {
+                msgIndex = (msgIndex + 1) % messages.length;
+                labelEl.style.opacity = '0';
+                setTimeout(() => {
+                    labelEl.innerHTML = messages[msgIndex];
+                    labelEl.style.opacity = '1';
+                }, 400);
+            }, 1800);
+            labelEl.style.transition = 'opacity 0.4s';
+
+            // Loading counter
+            let interval;
+            function tick() {
+                progress += Math.random() * 2 + 0.3;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    clearInterval(msgInterval);
+                    labelEl.innerHTML = '🚀 <span style="color:#22c55e;font-weight:700">Ready!</span>';
+                    updateBulb(100);
+                    setTimeout(blast, 400);
+                    return;
+                }
+                updateBulb(progress);
+            }
+
+            // Start
+            interval = setInterval(tick, 50);
+        })();
     </script>
 </body>
 
